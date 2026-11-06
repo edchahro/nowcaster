@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amman Shadow Economy Nowcaster | 2D Continuous Spatial Console</title>
+  
+  <!-- MapLibre GL JS for Continuous Heatmap & Vector Rendering -->
+  <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
+  <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+
+  <!-- Pre-bundled Data for Instant Offline Execution -->
+  <script src="data_bundle.js"></script>
+
+  <!-- Typography: Plus Jakarta Sans, DM Sans, JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-dark: #060911;
+      --bg-panel: rgba(11, 18, 33, 0.90);
+      --bg-card: rgba(18, 26, 46, 0.82);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-focus: rgba(56, 189, 248, 0.40);
+      --text-main: #F1F5F9;
+      --text-muted: #94A3B8;
+      --text-dim: #64748B;
+      --accent-blue: #38BDF8;
+      --accent-amber: #F59E0B;
+      --accent-crimson: #EF4444;
+      --accent-emerald: #10B981;
+      --accent-indigo: #6366F1;
+      --font-title: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-body: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    #map {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 1;
+      background: #090D16;
+    }
+
+    /* Glassmorphic Tactical Panels */
+    .hud-panel {
+      background: var(--bg-panel);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+      z-index: 10;
+    }
+
+    /* Top Navigation HUD */
+    #top-hud {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      right: 16px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .status-beacon {
+      width: 9px;
+      height: 9px;
+      background-color: var(--accent-emerald);
+      border-radius: 50%;
+      box-shadow: 0 0 12px var(--accent-emerald);
+      animation: pulse 2.4s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+      70% { transform: scale(1.05); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    .project-title {
+      font-family: var(--font-title);
+      font-size: 14.5px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      color: #FFFFFF;
+    }
+
+    .project-badge {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      color: #38BDF8;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.30);
+      padding: 3px 8px;
+      border-radius: 4px;
+      letter-spacing: 0.4px;
+    }
+
+    .telemetry-readout {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--accent-blue);
+    }
+
+    .telemetry-item span.label {
+      color: var(--text-muted);
+      margin-right: 4px;
+    }
+
+    .mode-switch-group {
+      display: flex;
+      background: rgba(6, 10, 20, 0.60);
+      padding: 3px;
+      border-radius: 7px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .mode-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 5px 13px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      font-weight: 600;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .mode-btn.active {
+      background: #2563EB;
+      color: #FFFFFF;
+      box-shadow: 0 0 12px rgba(37, 99, 235, 0.5);
+    }
+
+    /* Left Control Rail */
+    #left-rail {
+      position: absolute;
+      top: 86px;
+      left: 16px;
+      bottom: 48px;
+      width: 326px;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    #left-rail::-webkit-scrollbar { width: 4px; }
+    #left-rail::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 2px;
+    }
+
+    .panel-section-title {
+      font-family: var(--font-title);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--accent-blue);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .control-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 12px;
+    }
+
+    .spec-option {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px 10px;
+      margin-bottom: 6px;
+      border-radius: 6px;
+      cursor: pointer;
+      background: rgba(6, 10, 20, 0.35);
+      border: 1px solid transparent;
+      transition: all 0.15s ease;
+    }
+
+    .spec-option:hover {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .spec-option.active {
+      background: rgba(37, 99, 235, 0.16);
+      border-color: #3B82F6;
+    }
+
+    .spec-option input[type="radio"] {
+      margin-top: 3px;
+      accent-color: #38BDF8;
+    }
+
+    .spec-name { font-size: 12px; font-weight: 600; color: #FFFFFF; }
+    .spec-desc { font-size: 10.5px; color: var(--text-muted); margin-top: 2px; line-height: 1.35; }
+
+    /* Custom Sliders */
+    .slider-row { margin-top: 10px; }
+    .slider-header { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 5px; }
+    .slider-header span.val { font-family: var(--font-mono); color: var(--accent-amber); font-weight: 600; }
+
+    input[type="range"] {
+      width: 100%;
+      height: 5px;
+      accent-color: var(--accent-amber);
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 3px;
+      outline: none;
+    }
+
+    .reset-btn {
+      width: 100%;
+      margin-top: 10px;
+      padding: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      border-radius: 5px;
+      color: var(--text-muted);
+      font-size: 10.5px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .reset-btn:hover { background: rgba(255, 255, 255, 0.1); color: #FFFFFF; }
+
+    /* Diagnostics Grid */
+    .diag-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .diag-stat {
+      background: rgba(6, 10, 20, 0.45);
+      padding: 8px 10px;
+      border-radius: 5px;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+    .diag-label { font-size: 9.5px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .diag-value { font-family: var(--font-mono); font-size: 13px; font-weight: 700; color: #FFFFFF; margin-top: 2px; }
+
+    /* Dynamic Fly-To Quick-Zoom Bar */
+    #quick-zoom-bar {
+      position: absolute;
+      bottom: 54px;
+      left: 358px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 14px;
+      z-index: 10;
+    }
+
+    .zoom-title {
+      font-family: var(--font-title);
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--accent-blue);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-right: 2px;
+    }
+
+    .hotspot-chip {
+      background: rgba(6, 10, 20, 0.65);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      padding: 5px 11px;
+      border-radius: 5px;
+      font-size: 11px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+    .hotspot-chip span.rank { font-family: var(--font-mono); color: var(--accent-crimson); font-weight: 700; }
+    .hotspot-chip:hover {
+      background: rgba(239, 68, 68, 0.22);
+      border-color: var(--accent-crimson);
+      transform: translateY(-1px);
+    }
+
+    /* Right Area Inspector Drawer */
+    #inspector-drawer {
+      position: absolute;
+      top: 86px;
+      right: 16px;
+      width: 326px;
+      padding: 16px;
+      z-index: 10;
+    }
+
+    .inspector-header {
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 12px;
+      margin-bottom: 12px;
+    }
+    .zone-title { font-family: var(--font-title); font-size: 15.5px; font-weight: 700; color: #FFFFFF; }
+    .zone-id { font-family: var(--font-mono); font-size: 10.5px; color: var(--text-muted); margin-top: 2px; }
+
+    .residual-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 8px;
+      padding: 4px 10px;
+      border-radius: 5px;
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      font-weight: 700;
+      background: rgba(239, 68, 68, 0.18);
+      border: 1px solid #EF4444;
+      color: #FCA5A5;
+    }
+
+    .metric-row {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      font-size: 11.5px;
+    }
+    .metric-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .metric-header span.k { color: var(--text-muted); font-size: 11px; }
+    .metric-header span.v { font-family: var(--font-mono); color: #FFFFFF; font-weight: 600; font-size: 11.5px; }
+
+    .bar-track {
+      width: 100%;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-top: 2px;
+    }
+    .bar-fill {
+      height: 100%;
+      background: linear-gradient(to right, #38BDF8, #F59E0B);
+      border-radius: 2px;
+      transition: width 0.3s ease;
+    }
+
+    /* Legend Overlay */
+    #map-legend {
+      position: absolute;
+      bottom: 54px;
+      right: 16px;
+      padding: 10px 14px;
+      z-index: 10;
+      font-size: 10.5px;
+    }
+    .legend-title {
+      font-family: var(--font-title);
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .legend-bar {
+      display: flex;
+      height: 8px;
+      width: 190px;
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 5px;
+      background: linear-gradient(to right, rgba(99,102,241,0.7), #0284C7, #10B981, #F59E0B, #EF4444);
+    }
+    .legend-labels {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--text-muted);
+    }
+
+    /* Mandatory Attribution Footer */
+    #footer-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 32px;
+      background: rgba(4, 7, 14, 0.96);
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 18px;
+      font-size: 10.5px;
+      color: var(--text-muted);
+      z-index: 10;
+    }
+    #footer-bar a { color: var(--accent-blue); text-decoration: none; }
+    #footer-bar a:hover { text-decoration: underline; }
+    .ethical-pill {
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid var(--accent-amber);
+      color: var(--accent-amber);
+      padding: 2px 8px;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Map Container -->
+  <div id="map"></div>
+
+  <!-- Top Navigation & Telemetry HUD -->
+  <header id="top-hud" class="hud-panel">
+    <div class="brand-section">
+      <div class="status-beacon"></div>
+      <span class="project-title">AMMAN SHADOW ECONOMY NOWCASTER</span>
+      <span class="project-badge">2D CONTINUOUS HEATMAP</span>
+    </div>
+
+    <div class="telemetry-readout">
+      <div class="telemetry-item">
+        <span class="label">LOCATION:</span>
+        <span id="coords-val">Amman Metropolitan Basin</span>
+      </div>
+      <div class="telemetry-item">
+        <span class="label">LAYER:</span>
+        <span id="layer-mode-val" style="color: #38BDF8;">Continuous Heatmap</span>
+      </div>
+      <div class="telemetry-item">
+        <span class="label">MODEL:</span>
+        <span id="active-spec-label" style="color: #FFFFFF;">Primary OLS</span>
+      </div>
+    </div>
+
+    <div class="mode-switch-group">
+      <button id="btn-mode-heat" class="mode-btn active" onclick="setDisplayMode('heatmap')">CONTINUOUS HEATMAP</button>
+      <button id="btn-mode-macro" class="mode-btn" onclick="setDisplayMode('macro')">GAM DISTRICTS (22)</button>
+      <button id="btn-mode-grid" class="mode-btn" onclick="setDisplayMode('grid')">H3 GRID (1,035)</button>
+      <a href="cesium_3d.html" class="mode-btn" style="text-decoration: none; color: #38BDF8; border-left: 1px solid rgba(255,255,255,0.15); display: inline-flex; align-items: center; gap: 4px;">3D GLOBE ↗</a>
+    </div>
+  </header>
+
+  <!-- Left Control Rail -->
+  <aside id="left-rail" class="hud-panel">
+    
+    <!-- Model Specification Selector -->
+    <div class="control-card">
+      <div class="panel-section-title">Econometric Specification</div>
+      
+      <label class="spec-option active" id="opt-primary" onclick="setSpecification('primary')">
+        <input type="radio" name="spec" value="primary" checked>
+        <div>
+          <div class="spec-name">Primary OLS (Physical Scale)</div>
+          <div class="spec-desc">Controls for Ambient Population & Commercial Area. Standardized residuals isolate spatial economic surplus.</div>
+        </div>
+      </label>
+
+      <label class="spec-option" id="opt-extended" onclick="setSpecification('extended')">
+        <input type="radio" name="spec" value="extended">
+        <div>
+          <div class="spec-name">Extended (Urban Context)</div>
+          <div class="spec-desc">Adds small building share, street density & transit anchor distance controls.</div>
+        </div>
+      </label>
+    </div>
+
+    <!-- Heatmap Calibration Sliders -->
+    <div class="control-card">
+      <div class="panel-section-title">
+        <span>Heatmap Calibration</span>
+      </div>
+
+      <div class="slider-row">
+        <div class="slider-header">
+          <span>Heat Influence Radius</span>
+          <span class="val" id="val-radius">45 px</span>
+        </div>
+        <input type="range" id="slider-radius" min="20" max="90" step="5" value="45" oninput="updateHeatmapRadius(this.value)">
+      </div>
+
+      <div class="slider-row">
+        <div class="slider-header">
+          <span>Heat Intensity Multiplier</span>
+          <span class="val" id="val-intensity">1.2x</span>
+        </div>
+        <input type="range" id="slider-intensity" min="0.5" max="3.0" step="0.1" value="1.2" oninput="updateHeatmapIntensity(this.value)">
+      </div>
+
+      <div class="slider-row">
+        <div class="slider-header">
+          <span>OSM Micro-Vendors (w_osm)</span>
+          <span class="val" id="val-osm">0.40</span>
+        </div>
+        <input type="range" id="slider-osm" min="0" max="1" step="0.05" value="0.40" oninput="updateWeights('osm', this.value)">
+      </div>
+
+      <div class="slider-row">
+        <div class="slider-header">
+          <span>VIIRS Night Radiance (w_viirs)</span>
+          <span class="val" id="val-viirs">0.60</span>
+        </div>
+        <input type="range" id="slider-viirs" min="0" max="1" step="0.05" value="0.60" oninput="updateWeights('viirs', this.value)">
+      </div>
+
+      <button class="reset-btn" onclick="resetHeatmapDefaults()">Reset to Pre-Registered Baseline</button>
+    </div>
+
+    <!-- Spatial Diagnostics Card -->
+    <div class="control-card">
+      <div class="panel-section-title">Spatial Diagnostics & Fit</div>
+      <div class="diag-grid">
+        <div class="diag-stat">
+          <div class="diag-label">Global Moran's I</div>
+          <div class="diag-value" id="diag-moran">0.1443</div>
+        </div>
+        <div class="diag-stat">
+          <div class="diag-label">Pseudo p-value</div>
+          <div class="diag-value" id="diag-pvalue" style="color: var(--accent-emerald);">&lt; 0.001</div>
+        </div>
+        <div class="diag-stat">
+          <div class="diag-label">Model R² (Primary)</div>
+          <div class="diag-value" id="diag-r2">0.614</div>
+        </div>
+        <div class="diag-stat">
+          <div class="diag-label">Extended R²</div>
+          <div class="diag-value" id="diag-r2-ext">0.630</div>
+        </div>
+      </div>
+      <div style="font-size: 10px; color: var(--text-muted); margin-top: 8px; line-height: 1.35;">
+        * Continuous Heatmap eliminates polygon boundary seams and renders continuous spatial density across Amman's hilly terrain.
+      </div>
+    </div>
+
+    <!-- Sensitivity & Stability -->
+    <div class="control-card">
+      <div class="panel-section-title">Robustness & Sensitivity</div>
+      <div class="metric-row" style="flex-direction: row; justify-content: space-between;">
+        <span class="k" style="color: var(--text-muted); font-size: 11px;">LOIO Rank Stability (Drop Vendor):</span>
+        <span class="v" id="loio-vendor" style="font-family: var(--font-mono); color: #FFFFFF;">ρ = 0.930</span>
+      </div>
+      <div class="metric-row" style="flex-direction: row; justify-content: space-between;">
+        <span class="k" style="color: var(--text-muted); font-size: 11px;">LOIO Rank Stability (Drop VIIRS):</span>
+        <span class="v" id="loio-radiance" style="font-family: var(--font-mono); color: #FFFFFF;">ρ = 0.178</span>
+      </div>
+      <div class="metric-row" style="flex-direction: row; justify-content: space-between;">
+        <span class="k" style="color: var(--text-muted); font-size: 11px;">Primary vs Extended Consensus:</span>
+        <span class="v" id="rho-specs" style="font-family: var(--font-mono); color: #FFFFFF;">ρ = 0.937</span>
+      </div>
+      <div class="metric-row" style="flex-direction: row; justify-content: space-between;">
+        <span class="k" style="color: var(--text-muted); font-size: 11px;">Dirichlet Monte Carlo Draws:</span>
+        <span class="v" style="font-family: var(--font-mono); color: #FFFFFF;">1,000 Iterations</span>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- Dynamic Priority Quick-Zoom Bar -->
+  <nav id="quick-zoom-bar" class="hud-panel">
+    <div class="zoom-title">Priority Quick-Zoom:</div>
+    <div id="hotspot-buttons" style="display: flex; gap: 8px;"></div>
+  </nav>
+
+  <!-- Right Area Inspector Drawer -->
+  <aside id="inspector-drawer" class="hud-panel">
+    <div class="inspector-header">
+      <div class="panel-section-title" style="margin-bottom: 2px;">Area Profile</div>
+      <div class="zone-title" id="insp-district">Select a Neighborhood</div>
+      <div class="zone-id" id="insp-hex-id">Click anywhere on the heatmap</div>
+      <div id="insp-pill-container" style="display: none;">
+        <div class="residual-pill" id="insp-pill">+0.00σ Priority Hotspot</div>
+      </div>
+    </div>
+
+    <div class="metric-row">
+      <div class="metric-header"><span class="k">Ambient Population:</span><span class="v" id="insp-ambient-pop">—</span></div>
+      <div class="bar-track"><div class="bar-fill" id="bar-ambient-pop" style="width: 50%;"></div></div>
+    </div>
+
+    <div class="metric-row">
+      <div class="metric-header"><span class="k">Residential Census Pop:</span><span class="v" id="insp-res-pop">—</span></div>
+      <div class="bar-track"><div class="bar-fill" id="bar-res-pop" style="width: 40%;"></div></div>
+    </div>
+
+    <div class="metric-row">
+      <div class="metric-header"><span class="k">Commercial Footprint:</span><span class="v" id="insp-comm-area">—</span></div>
+      <div class="bar-track"><div class="bar-fill" id="bar-comm-area" style="width: 30%;"></div></div>
+    </div>
+
+    <div class="metric-row">
+      <div class="metric-header"><span class="k">Real VIIRS Mean Radiance:</span><span class="v" id="insp-radiance">—</span></div>
+      <div class="bar-track"><div class="bar-fill" id="bar-radiance" style="width: 60%;"></div></div>
+    </div>
+
+    <div class="metric-row">
+      <div class="metric-header"><span class="k">Informal Sector Share:</span><span class="v" id="insp-sector-share">—</span></div>
+      <div class="bar-track"><div class="bar-fill" id="bar-sector-share" style="width: 20%;"></div></div>
+    </div>
+
+    <div class="metric-row">
+      <div class="metric-header"><span class="k">Small Building Share (&lt;100m²):</span><span class="v" id="insp-small-bldg">—</span></div>
+    </div>
+    <div class="metric-row">
+      <div class="metric-header"><span class="k">Street Intersection Density:</span><span class="v" id="insp-intersections">—</span></div>
+    </div>
+    <div class="metric-row">
+      <div class="metric-header"><span class="k">Civic / Transit Proximity:</span><span class="v" id="insp-anchor-access">—</span></div>
+    </div>
+  </aside>
+
+  <!-- Map Legend -->
+  <div id="map-legend" class="hud-panel">
+    <div class="legend-title">Informal Activity Density / Residual</div>
+    <div class="legend-bar"></div>
+    <div class="legend-labels">
+      <span>Coldspot</span>
+      <span>Moderate</span>
+      <span>Baseline</span>
+      <span>Elevated</span>
+      <span>Hotspot</span>
+    </div>
+  </div>
+
+  <!-- Mandatory Attribution & Ethical Footer -->
+  <footer id="footer-bar">
+    <div>
+      © <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> (ODbL) · 
+      <a href="https://www.worldpop.org/" target="_blank">WorldPop</a> (CC-BY 4.0) · 
+      <a href="https://eogdata.mines.edu/" target="_blank">EOG VIIRS</a> (Payne Institute) · 
+      <a href="https://maplibre.org/" target="_blank">MapLibre GL JS</a>
+    </div>
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <span class="ethical-pill">PLANNING DECISION SUPPORT · NOT AN ENFORCEMENT AUDIT</span>
+      <span>German Jordanian University (GJU)</span>
+    </div>
+  </footer>
+
+  <script>
+    let map;
+    let currentDisplayMode = 'heatmap'; // 'heatmap', 'macro', 'grid'
+    let currentSpec = 'primary';
+    let summaryData = null;
+    let hexGeojson = null;
+    let macroGeojson = null;
+    let pointGeojson = null;
+
+    let heatRadius = 45;
+    let heatIntensity = 1.2;
+    let weightOsm = 0.40;
+    let weightViirs = 0.60;
+
+    function initMap() {
+      const ammanCenter = [35.9152, 31.9749];
+
+      map = new maplibregl.Map({
+        container: 'map',
+        style: {
+          version: 8,
+          sources: {
+            'carto-dark': {
+              type: 'raster',
+              tiles: [
+                'https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
+                'https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'
+              ],
+              tileSize: 256,
+              attribution: '© CartoDB'
+            }
+          },
+          layers: [
+            {
+              id: 'carto-dark-layer',
+              type: 'raster',
+              source: 'carto-dark',
+              minzoom: 0,
+              maxzoom: 19
+            }
+          ]
+        },
+        center: ammanCenter,
+        zoom: 11.4,
+        pitch: 0,
+        bearing: 0,
+        maxBounds: [
+          [35.55, 31.70],
+          [36.30, 32.30]
+        ]
+      });
+
+      map.addControl(new maplibregl.NavigationControl({ showCompass: true }), 'bottom-right');
+
+      map.on('mousemove', (e) => {
+        document.getElementById('coords-val').innerText = 
+          `${e.lngLat.lat.toFixed(4)}°N, ${e.lngLat.lng.toFixed(4)}°E`;
+      });
+
+      map.on('load', async () => {
+        await loadData();
+      });
+    }
+
+    async function loadData() {
+      if (window.AMMAN_HEXAGONS_GEOJSON && window.AMMAN_ECONOMETRIC_SUMMARY) {
+        summaryData = window.AMMAN_ECONOMETRIC_SUMMARY;
+        hexGeojson = window.AMMAN_HEXAGONS_GEOJSON;
+        macroGeojson = window.AMMAN_MACRO_BOUNDARIES || null;
+      } else {
+        try {
+          const [sumResp, hexResp, macroResp] = await Promise.all([
+            fetch('../server/data/econometric_summary.json'),
+            fetch('../server/data/amman_hexagons_res8.geojson'),
+            fetch('../server/data/amman_macro_boundaries.geojson')
+          ]);
+          summaryData = await sumResp.json();
+          hexGeojson = await hexResp.json();
+          macroGeojson = await macroResp.json();
+        } catch (err) {
+          console.error('Data loading error:', err);
+          return;
+        }
+      }
+
+      // Convert hexagon centroids to Point FeatureCollection for continuous Gaussian heatmap
+      const pointFeatures = hexGeojson.features.map(f => {
+        const p = f.properties;
+        const z = parseFloat(p.shadow_index_z || 0);
+        const heatWeight = Math.max(0.05, Math.min(1.0, (z + 2.0) / 5.0));
+        return {
+          type: 'Feature',
+          geometry: {
+            type: 'Point',
+            coordinates: [p.centroid_lng, p.centroid_lat]
+          },
+          properties: {
+            ...p,
+            heat_weight_primary: heatWeight,
+            heat_weight_extended: Math.max(0.05, Math.min(1.0, (parseFloat(p.shadow_index_ext_z || 0) + 2.0) / 5.0))
+          }
+        };
+      });
+
+      pointGeojson = {
+        type: 'FeatureCollection',
+        features: pointFeatures
+      };
+
+      populateDiagnostics(summaryData);
+      populateQuickZoom(summaryData.dynamic_priority_hotspots);
+      
+      addHeatmapLayers(pointGeojson);
+      addGridLayers(hexGeojson);
+      if (macroGeojson) {
+        addMacroLayers(macroGeojson);
+      }
+
+      if (summaryData.dynamic_priority_hotspots && summaryData.dynamic_priority_hotspots.length > 0) {
+        updateInspector(summaryData.dynamic_priority_hotspots[0]);
+      }
+    }
+
+    function addHeatmapLayers(pointsData) {
+      map.addSource('amman-heat-points', {
+        type: 'geojson',
+        data: pointsData
+      });
+
+      map.addLayer({
+        id: 'amman-heatmap-layer',
+        type: 'heatmap',
+        source: 'amman-heat-points',
+        layout: { 'visibility': 'visible' },
+        paint: {
+          'heatmap-weight': [
+            'interpolate', ['linear'], ['get', 'heat_weight_primary'],
+            0.0, 0.05,
+            0.5, 0.45,
+            1.0, 1.0
+          ],
+          'heatmap-intensity': [
+            'interpolate', ['linear'], ['zoom'],
+            10, 0.8 * heatIntensity,
+            12, 1.2 * heatIntensity,
+            15, 2.5 * heatIntensity
+          ],
+          'heatmap-color': [
+            'interpolate', ['linear'], ['heatmap-density'],
+            0.0, 'rgba(0, 0, 0, 0)',
+            0.15, 'rgba(99, 102, 241, 0.45)', // Indigo
+            0.35, 'rgba(16, 185, 129, 0.70)', // Emerald
+            0.60, 'rgba(245, 158, 11, 0.85)', // Amber
+            0.85, 'rgba(239, 68, 68, 0.95)',  // Crimson
+            1.0, 'rgba(255, 255, 255, 0.98)'  // White-hot core
+          ],
+          'heatmap-radius': [
+            'interpolate', ['linear'], ['zoom'],
+            10, heatRadius * 0.6,
+            12, heatRadius,
+            14, heatRadius * 1.6,
+            16, heatRadius * 2.4
+          ],
+          'heatmap-opacity': 0.85
+        }
+      });
+
+      map.addLayer({
+        id: 'amman-heat-click-targets',
+        type: 'circle',
+        source: 'amman-heat-points',
+        paint: {
+          'circle-radius': [
+            'interpolate', ['linear'], ['zoom'],
+            10, 8,
+            12, 14,
+            15, 24
+          ],
+          'circle-color': '#FFFFFF',
+          'circle-opacity': 0.01
+        }
+      });
+
+      map.on('click', 'amman-heat-click-targets', (e) => {
+        if (e.features && e.features.length > 0) {
+          updateInspector(e.features[0].properties);
+        }
+      });
+
+      map.on('mouseenter', 'amman-heat-click-targets', () => { map.getCanvas().style.cursor = 'pointer'; });
+      map.on('mouseleave', 'amman-heat-click-targets', () => { map.getCanvas().style.cursor = ''; });
+    }
+
+    function addGridLayers(geojson) {
+      map.addSource('amman-hexagons', {
+        type: 'geojson',
+        data: geojson
+      });
+
+      map.addLayer({
+        id: 'hex-fill-2d',
+        type: 'fill',
+        source: 'amman-hexagons',
+        layout: { 'visibility': 'none' },
+        paint: {
+          'fill-color': [
+            'step', ['get', 'shadow_index_z'],
+            '#6366F1', -1.5,
+            '#0284C7', -0.5,
+            '#10B981', 0.5,
+            '#F59E0B', 1.5,
+            '#EF4444'
+          ],
+          'fill-opacity': 0.70
+        }
+      });
+
+      map.addLayer({
+        id: 'hex-line-2d',
+        type: 'line',
+        source: 'amman-hexagons',
+        layout: { 'visibility': 'none' },
+        paint: {
+          'line-color': 'rgba(255, 255, 255, 0.20)',
+          'line-width': 1
+        }
+      });
+
+      map.on('click', 'hex-fill-2d', (e) => {
+        if (e.features && e.features.length > 0) {
+          updateInspector(e.features[0].properties);
+        }
+      });
+    }
+
+    function addMacroLayers(geojson) {
+      map.addSource('amman-macro', {
+        type: 'geojson',
+        data: geojson
+      });
+
+      map.addLayer({
+        id: 'macro-fill',
+        type: 'fill',
+        source: 'amman-macro',
+        layout: { 'visibility': 'none' },
+        paint: {
+          'fill-color': [
+            'step', ['get', 'discrepancy_residual_z'],
+            '#6366F1', -1.5,
+            '#0284C7', -0.5,
+            '#10B981', 0.5,
+            '#F59E0B', 1.5,
+            '#EF4444'
+          ],
+          'fill-opacity': 0.70
+        }
+      });
+
+      map.addLayer({
+        id: 'macro-line',
+        type: 'line',
+        source: 'amman-macro',
+        layout: { 'visibility': 'none' },
+        paint: {
+          'line-color': '#38BDF8',
+          'line-width': 2.5
+        }
+      });
+
+      map.on('click', 'macro-fill', (e) => {
+        if (e.features && e.features.length > 0) {
+          const props = e.features[0].properties;
+          document.getElementById('insp-district').innerText = `${props.name_en} · ${props.name_ar}`;
+          document.getElementById('insp-hex-id').innerText = `District ID: ${props.id}`;
+          
+          const z = parseFloat(props.discrepancy_residual_z || 0);
+          const pill = document.getElementById('insp-pill');
+          pill.innerText = `${z >= 0 ? '+' : ''}${z.toFixed(2)}σ Macro Discrepancy`;
+          document.getElementById('insp-pill-container').style.display = 'block';
+
+          const ambient = Number(props.ambient_pop || 0);
+          const res = Number(props.res_pop || 0);
+          const comm = Number(props.comm_area_m2 || 0);
+          const rad = parseFloat(props.viirs_mean_radiance || 0);
+
+          document.getElementById('insp-ambient-pop').innerText = ambient.toLocaleString();
+          document.getElementById('insp-res-pop').innerText = res.toLocaleString();
+          document.getElementById('insp-comm-area').innerText = `${comm.toLocaleString()} m²`;
+          document.getElementById('insp-radiance').innerText = `${rad.toFixed(2)} nW/cm²`;
+          document.getElementById('insp-sector-share').innerText = `Licenses: ${Number(props.est_licenses || 0).toLocaleString()}`;
+          document.getElementById('insp-small-bldg').innerText = `Vendors: ${Number(props.osm_vendor_count || 0).toLocaleString()}`;
+          document.getElementById('insp-intersections').innerText = `Macro Rank #${props.macro_rank || 1}`;
+          document.getElementById('insp-anchor-access').innerText = `Score: ${props.observed_activity_score || '0.00'}`;
+
+          document.getElementById('bar-ambient-pop').style.width = `${Math.min(100, Math.max(5, (ambient / 450000) * 100))}%`;
+          document.getElementById('bar-res-pop').style.width = `${Math.min(100, Math.max(5, (res / 350000) * 100))}%`;
+          document.getElementById('bar-comm-area').style.width = `${Math.min(100, Math.max(5, (comm / 250000) * 100))}%`;
+          document.getElementById('bar-radiance').style.width = `${Math.min(100, Math.max(5, (rad / 50.0) * 100))}%`;
+          document.getElementById('bar-sector-share').style.width = `50%`;
+        }
+      });
+    }
+
+    function setDisplayMode(mode) {
+      currentDisplayMode = mode;
+      document.getElementById('btn-mode-heat').classList.toggle('active', mode === 'heatmap');
+      document.getElementById('btn-mode-macro').classList.toggle('active', mode === 'macro');
+      document.getElementById('btn-mode-grid').classList.toggle('active', mode === 'grid');
+
+      if (mode === 'heatmap') {
+        map.setLayoutProperty('amman-heatmap-layer', 'visibility', 'visible');
+        map.setLayoutProperty('amman-heat-click-targets', 'visibility', 'visible');
+        map.setLayoutProperty('hex-fill-2d', 'visibility', 'none');
+        map.setLayoutProperty('hex-line-2d', 'visibility', 'none');
+        map.setLayoutProperty('macro-fill', 'visibility', 'none');
+        map.setLayoutProperty('macro-line', 'visibility', 'none');
+        document.getElementById('layer-mode-val').innerText = 'Continuous Heatmap';
+      } else if (mode === 'macro') {
+        map.setLayoutProperty('amman-heatmap-layer', 'visibility', 'none');
+        map.setLayoutProperty('amman-heat-click-targets', 'visibility', 'none');
+        map.setLayoutProperty('hex-fill-2d', 'visibility', 'none');
+        map.setLayoutProperty('hex-line-2d', 'visibility', 'none');
+        map.setLayoutProperty('macro-fill', 'visibility', 'visible');
+        map.setLayoutProperty('macro-line', 'visibility', 'visible');
+        document.getElementById('layer-mode-val').innerText = 'GAM 22 Districts';
+      } else if (mode === 'grid') {
+        map.setLayoutProperty('amman-heatmap-layer', 'visibility', 'none');
+        map.setLayoutProperty('amman-heat-click-targets', 'visibility', 'none');
+        map.setLayoutProperty('macro-fill', 'visibility', 'none');
+        map.setLayoutProperty('macro-line', 'visibility', 'none');
+        map.setLayoutProperty('hex-fill-2d', 'visibility', 'visible');
+        map.setLayoutProperty('hex-line-2d', 'visibility', 'visible');
+        document.getElementById('layer-mode-val').innerText = 'H3 Hexagonal Grid (1,035)';
+      }
+    }
+
+    function setSpecification(spec) {
+      currentSpec = spec;
+      document.getElementById('opt-primary').classList.toggle('active', spec === 'primary');
+      document.getElementById('opt-extended').classList.toggle('active', spec === 'extended');
+      document.querySelector(`input[value="${spec}"]`).checked = true;
+
+      const propWeight = spec === 'primary' ? 'heat_weight_primary' : 'heat_weight_extended';
+      const propScore = spec === 'primary' ? 'shadow_index_z' : 'shadow_index_ext_z';
+
+      document.getElementById('active-spec-label').innerText = spec === 'primary' ? 'Primary OLS' : 'Extended Context';
+
+      map.setPaintProperty('amman-heatmap-layer', 'heatmap-weight', [
+        'interpolate', ['linear'], ['get', propWeight],
+        0.0, 0.05,
+        0.5, 0.45,
+        1.0, 1.0
+      ]);
+
+      map.setPaintProperty('hex-fill-2d', 'fill-color', [
+        'step', ['get', propScore],
+        '#6366F1', -1.5,
+        '#0284C7', -0.5,
+        '#10B981', 0.5,
+        '#F59E0B', 1.5,
+        '#EF4444'
+      ]);
+    }
+
+    function updateHeatmapRadius(val) {
+      heatRadius = parseFloat(val);
+      document.getElementById('val-radius').innerText = `${heatRadius} px`;
+      map.setPaintProperty('amman-heatmap-layer', 'heatmap-radius', [
+        'interpolate', ['linear'], ['zoom'],
+        10, heatRadius * 0.6,
+        12, heatRadius,
+        14, heatRadius * 1.6,
+        16, heatRadius * 2.4
+      ]);
+    }
+
+    function updateHeatmapIntensity(val) {
+      heatIntensity = parseFloat(val);
+      document.getElementById('val-intensity').innerText = `${heatIntensity}x`;
+      map.setPaintProperty('amman-heatmap-layer', 'heatmap-intensity', [
+        'interpolate', ['linear'], ['zoom'],
+        10, 0.8 * heatIntensity,
+        12, 1.2 * heatIntensity,
+        15, 2.5 * heatIntensity
+      ]);
+    }
+
+    function updateWeights(type, val) {
+      val = parseFloat(val);
+      if (type === 'osm') {
+        weightOsm = val;
+        weightViirs = Math.round((1.0 - val) * 100) / 100;
+        document.getElementById('slider-viirs').value = weightViirs;
+      } else {
+        weightViirs = val;
+        weightOsm = Math.round((1.0 - val) * 100) / 100;
+        document.getElementById('slider-osm').value = weightOsm;
+      }
+      document.getElementById('val-osm').innerText = weightOsm.toFixed(2);
+      document.getElementById('val-viirs').innerText = weightViirs.toFixed(2);
+    }
+
+    function resetHeatmapDefaults() {
+      heatRadius = 45;
+      heatIntensity = 1.2;
+      weightOsm = 0.40;
+      weightViirs = 0.60;
+      document.getElementById('slider-radius').value = 45;
+      document.getElementById('slider-intensity').value = 1.2;
+      document.getElementById('slider-osm').value = 0.40;
+      document.getElementById('slider-viirs').value = 0.60;
+      document.getElementById('val-radius').innerText = '45 px';
+      document.getElementById('val-intensity').innerText = '1.2x';
+      document.getElementById('val-osm').innerText = '0.40';
+      document.getElementById('val-viirs').innerText = '0.60';
+      updateHeatmapRadius(45);
+      updateHeatmapIntensity(1.2);
+    }
+
+    function populateDiagnostics(data) {
+      document.getElementById('diag-moran').innerText = data.spatial_diagnostics.morans_i.toFixed(4);
+      document.getElementById('diag-r2').innerText = data.primary_specification.r_squared.toFixed(3);
+      document.getElementById('diag-r2-ext').innerText = data.extended_specification.r_squared.toFixed(3);
+      document.getElementById('loio-vendor').innerText = `ρ = ${data.sensitivity_audits.loio_drop_vendor_spearman.toFixed(3)}`;
+      document.getElementById('loio-radiance').innerText = `ρ = ${data.sensitivity_audits.loio_drop_viirs_spearman.toFixed(3)}`;
+      document.getElementById('rho-specs').innerText = `ρ = ${data.extended_specification.spearman_correlation_with_primary.toFixed(3)}`;
+    }
+
+    function populateQuickZoom(hotspots) {
+      const container = document.getElementById('hotspot-buttons');
+      container.innerHTML = '';
+
+      hotspots.forEach((spot) => {
+        const chip = document.createElement('div');
+        chip.className = 'hotspot-chip';
+        chip.innerHTML = `<span class="rank">#${spot.rank}</span> ${spot.district_name} (${spot.residual_z >= 0 ? '+' : ''}${spot.residual_z.toFixed(2)}σ)`;
+        chip.onclick = () => {
+          map.flyTo({
+            center: [spot.centroid_lng, spot.centroid_lat],
+            zoom: 13.5,
+            speed: 1.2,
+            curve: 1.4
+          });
+          updateInspector(spot);
+        };
+        container.appendChild(chip);
+      });
+    }
+
+    function updateInspector(props) {
+      document.getElementById('insp-district').innerText = props.district_name || 'Amman Urban Sector';
+      document.getElementById('insp-hex-id').innerText = `Grid Centroid: ${parseFloat(props.centroid_lat || 31.95).toFixed(4)}°N, ${parseFloat(props.centroid_lng || 35.92).toFixed(4)}°E`;
+      
+      const z = parseFloat(props.residual_z !== undefined ? props.residual_z : props.shadow_index_z || 0);
+      const pill = document.getElementById('insp-pill');
+      pill.innerText = `${z >= 0 ? '+' : ''}${z.toFixed(2)}σ Priority Hotspot`;
+      if (z >= 1.5) {
+        pill.style.borderColor = '#EF4444'; pill.style.color = '#FCA5A5'; pill.style.background = 'rgba(239, 68, 68, 0.2)';
+      } else if (z >= 0.5) {
+        pill.style.borderColor = '#F59E0B'; pill.style.color = '#FCD34D'; pill.style.background = 'rgba(245, 158, 11, 0.2)';
+      } else if (z >= -0.5) {
+        pill.style.borderColor = '#10B981'; pill.style.color = '#6EE7B7'; pill.style.background = 'rgba(16, 185, 129, 0.2)';
+      } else if (z >= -1.5) {
+        pill.style.borderColor = '#0284C7'; pill.style.color = '#7DD3FC'; pill.style.background = 'rgba(2, 132, 199, 0.2)';
+      } else {
+        pill.style.borderColor = '#6366F1'; pill.style.color = '#C7D2FE'; pill.style.background = 'rgba(99, 102, 241, 0.2)';
+      }
+      document.getElementById('insp-pill-container').style.display = 'block';
+
+      const ambient = Number(props.ambient_pop || 0);
+      const res = Number(props.res_pop || 0);
+      const comm = Number(props.comm_area_m2 || 0);
+      const rad = parseFloat(props.viirs_radiance || props.viirs_mean_radiance || 0);
+      const informalShare = parseFloat(props.informal_sector_share || 0);
+
+      document.getElementById('insp-ambient-pop').innerText = ambient.toLocaleString();
+      document.getElementById('insp-res-pop').innerText = res.toLocaleString();
+      document.getElementById('insp-comm-area').innerText = `${comm.toLocaleString()} m²`;
+      document.getElementById('insp-radiance').innerText = `${rad.toFixed(2)} nW/cm²`;
+      document.getElementById('insp-sector-share').innerText = `${(informalShare * 100).toFixed(1)}%`;
+      document.getElementById('insp-small-bldg').innerText = `${(parseFloat(props.small_building_share || 0) * 100).toFixed(1)}%`;
+      document.getElementById('insp-intersections').innerText = `${parseFloat(props.intersection_density || 0).toFixed(1)} / km²`;
+      document.getElementById('insp-anchor-access').innerText = parseFloat(props.anchor_accessibility || 0).toFixed(2);
+
+      document.getElementById('bar-ambient-pop').style.width = `${Math.min(100, Math.max(5, (ambient / 45000) * 100))}%`;
+      document.getElementById('bar-res-pop').style.width = `${Math.min(100, Math.max(5, (res / 25000) * 100))}%`;
+      document.getElementById('bar-comm-area').style.width = `${Math.min(100, Math.max(5, (comm / 12000) * 100))}%`;
+      document.getElementById('bar-radiance').style.width = `${Math.min(100, Math.max(5, (rad / 50.0) * 100))}%`;
+      document.getElementById('bar-sector-share').style.width = `${Math.min(100, Math.max(5, (informalShare / 0.40) * 100))}%`;
+    }
+
+    window.onload = initMap;
+  </script>
+</body>
+</html>

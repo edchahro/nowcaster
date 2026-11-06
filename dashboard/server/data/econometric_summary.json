@@ -1,0 +1,225 @@
+{
+  "metadata": {
+    "title": "Amman Shadow Economy Spatial Econometric Summary",
+    "benchmark_period": "2023-2024",
+    "hex_resolution": 8,
+    "total_hexagons": 1035,
+    "selected_scale_spec": "ambient_pop",
+    "vendor_zero_inflation_gate_triggered": true
+  },
+  "primary_specification": {
+    "r_squared": 0.6144080435062106,
+    "adj_r_squared": 0.6136607722726954,
+    "f_statistic": 822.202188375553,
+    "f_pvalue": 2.7671352868317646e-214,
+    "vif": {
+      "log_ambient_pop": 1.637032273720339,
+      "log_comm_area": 1.637032273720339
+    },
+    "coefficients": {
+      "const": {
+        "coef": -3.0894917235504757,
+        "std_err": 0.08025857424480509,
+        "t_stat": -38.49422635053163,
+        "p_value": 9.932477103190142e-202
+      },
+      "log_ambient_pop": {
+        "coef": 0.38460007548432634,
+        "std_err": 0.012234354953263788,
+        "t_stat": 31.43607300536312,
+        "p_value": 1.052203164490313e-152
+      },
+      "log_comm_area": {
+        "coef": 0.0061654738355317665,
+        "std_err": 0.015011913527806373,
+        "t_stat": 0.4107053923613095,
+        "p_value": 0.6813738308701336
+      }
+    }
+  },
+  "alternative_specification": {
+    "scale_variable": "res_pop",
+    "r_squared": 0.5947302370053349,
+    "adj_r_squared": 0.5939448304879034,
+    "f_statistic": 757.2260018292865,
+    "coefficients": {
+      "const": -2.6443061079296832,
+      "log_res_pop": 0.2725592235240182,
+      "log_comm_area": 0.1093654630118465
+    }
+  },
+  "extended_specification": {
+    "r_squared": 0.6303039770365566,
+    "spearman_correlation_with_primary": 0.9367786891376162,
+    "p_value": 0.0,
+    "coefficients": {
+      "const": -2.552738811550177,
+      "log_ambient_pop": 0.33688232304637405,
+      "log_comm_area": -0.022701346073966976,
+      "small_building_share": 0.0021319725535042682,
+      "intersection_density": 0.06395211200851585,
+      "anchor_accessibility": 0.09759189987793344
+    }
+  },
+  "spatial_diagnostics": {
+    "morans_i": 0.1442802296437689,
+    "morans_expected_i": -0.0009671179883945841,
+    "morans_pseudo_pvalue": 0.001,
+    "morans_z_score": 8.094346395721667,
+    "sem_spatial_lambda": 0.32,
+    "sem_status": "approximated"
+  },
+  "sensitivity_audits": {
+    "loio_drop_vendor_spearman": 0.929922796157764,
+    "loio_drop_viirs_spearman": 0.1782641513506073,
+    "dirichlet_simulations_count": 1000
+  },
+  "dynamic_priority_hotspots": [
+    {
+      "rank": 1,
+      "hex_id": "882db3c0c7fffff",
+      "district_name": "Downtown (Al-Balad)",
+      "centroid_lng": 35.941482,
+      "centroid_lat": 31.955548,
+      "residual_z": 9.6122,
+      "ambient_pop": 19621,
+      "comm_area_m2": 560.4271779071206,
+      "viirs_radiance": 63.74
+    },
+    {
+      "rank": 2,
+      "hex_id": "882db3d093fffff",
+      "district_name": "Badr Al-Jadida",
+      "centroid_lng": 35.795836,
+      "centroid_lat": 32.004686,
+      "residual_z": 8.7952,
+      "ambient_pop": 3168,
+      "comm_area_m2": 150.0,
+      "viirs_radiance": 14.91
+    },
+    {
+      "rank": 3,
+      "hex_id": "882db3d439fffff",
+      "district_name": "Abu Nseir",
+      "centroid_lng": 35.845627,
+      "centroid_lat": 32.077554,
+      "residual_z": 8.7234,
+      "ambient_pop": 9351,
+      "comm_area_m2": 150.0,
+      "viirs_radiance": 24.99
+    },
+    {
+      "rank": 4,
+      "hex_id": "882db3c031fffff",
+      "district_name": "Al-Quwaysimah",
+      "centroid_lng": 35.925507,
+      "centroid_lat": 31.919398,
+      "residual_z": 8.3871,
+      "ambient_pop": 17501,
+      "comm_area_m2": 476.7872306275152,
+      "viirs_radiance": 28.17
+    },
+    {
+      "rank": 5,
+      "hex_id": "882db3c093fffff",
+      "district_name": "Marka",
+      "centroid_lng": 35.984924,
+      "centroid_lat": 31.979118,
+      "residual_z": 8.0857,
+      "ambient_pop": 24734,
+      "comm_area_m2": 4691.660553674614,
+      "viirs_radiance": 28.37
+    }
+  ],
+  "macro_scale_models": {
+    "path_a_gam_22_districts": {
+      "n_units": 22,
+      "r_squared": 0.3207548955590013,
+      "f_statistic": 4.486114788148904,
+      "p_value": 0.025365995518197005,
+      "top_discrepancy_districts": [
+        {
+          "rank": 1,
+          "district_name": "Al-Madinah (Downtown)",
+          "name_ar": "\u0627\u0644\u0645\u062f\u064a\u0646\u0629 (\u0648\u0633\u0637 \u0627\u0644\u0628\u0644\u062f)",
+          "residual_z": 2.934,
+          "registered_licenses": 16500,
+          "observed_activity": 2.5446
+        },
+        {
+          "rank": 16,
+          "district_name": "Badr",
+          "name_ar": "\u0628\u062f\u0631",
+          "residual_z": 2.0959,
+          "registered_licenses": 7200,
+          "observed_activity": 1.1057
+        },
+        {
+          "rank": 11,
+          "district_name": "Ras Al-Ein",
+          "name_ar": "\u0631\u0627\u0633 \u0627\u0644\u0639\u064a\u0646",
+          "residual_z": 0.5391,
+          "registered_licenses": 8900,
+          "observed_activity": 0.2251
+        },
+        {
+          "rank": 6,
+          "district_name": "Marka",
+          "name_ar": "\u0645\u0627\u0631\u0643\u0627",
+          "residual_z": 0.5212,
+          "registered_licenses": 14200,
+          "observed_activity": -0.1963
+        },
+        {
+          "rank": 21,
+          "district_name": "Zahran",
+          "name_ar": "\u0632\u0647\u0631\u0627\u0646",
+          "residual_z": 0.3974,
+          "registered_licenses": 18200,
+          "observed_activity": 0.7264
+        }
+      ]
+    },
+    "path_b_dos_9_liwas": {
+      "n_units": 9,
+      "method": "Activity-to-Establishment Ratio (Descriptive Only)",
+      "top_ratio_liwas": [
+        {
+          "rank": 3,
+          "liwa_name": "Wadi Al-Seer (West)",
+          "name_ar": "\u0644\u0648\u0627\u0621 \u0648\u0627\u062f\u064a \u0627\u0644\u0633\u064a\u0631",
+          "ratio_z": 1.9758,
+          "census_establishments_2018": 18910
+        },
+        {
+          "rank": 5,
+          "liwa_name": "Qasabat Amman (Central)",
+          "name_ar": "\u0644\u0648\u0627\u0621 \u0642\u0635\u0628\u0629 \u0639\u0645\u0627\u0646",
+          "ratio_z": 0.8411,
+          "census_establishments_2018": 48210
+        },
+        {
+          "rank": 1,
+          "liwa_name": "Al-Jami'ah (North)",
+          "name_ar": "\u0644\u0648\u0627\u0621 \u0627\u0644\u062c\u0627\u0645\u0639\u0629",
+          "ratio_z": 0.3855,
+          "census_establishments_2018": 28450
+        },
+        {
+          "rank": 6,
+          "liwa_name": "Na'oor (Southwest)",
+          "name_ar": "\u0644\u0648\u0627\u0621 \u0646\u0627\u0639\u0648\u0631",
+          "ratio_z": 0.1025,
+          "census_establishments_2018": 4210
+        },
+        {
+          "rank": 2,
+          "liwa_name": "Marka (Northeast)",
+          "name_ar": "\u0644\u0648\u0627\u0621 \u0645\u0627\u0631\u0643\u0627",
+          "ratio_z": -0.007,
+          "census_establishments_2018": 24820
+        }
+      ]
+    }
+  }
+}

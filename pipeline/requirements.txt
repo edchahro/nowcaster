@@ -1,0 +1,21 @@
+# Core Spatial & Raster Processing
+geopandas
+shapely
+h3
+rasterio
+pyproj
+osmnx
+overturemaps
+
+# Econometrics & Spatial Statistics
+statsmodels
+spreg
+esda
+libpysal
+scipy
+numpy
+pandas
+
+# HTTP & Ingestion Utilities
+requests
+tqdm

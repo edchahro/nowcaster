@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amman Shadow Economy Nowcaster | 3D Spatial Intelligence Console</title>
+
+  <!-- CesiumJS 1.124.0 -->
+  <link href="https://cesium.com/downloads/cesiumjs/releases/1.124/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+  <script src="https://cesium.com/downloads/cesiumjs/releases/1.124/Build/Cesium/Cesium.js"></script>
+
+  <!-- Private Local Configuration (Ignored by Git, keeps GitHub repo secret-free) -->
+  <script src="config.js"></script>
+
+  <!-- Pre-bundled Data for Instant Offline Execution -->
+  <script src="data_bundle.js"></script>
+
+  <!-- Typography: Plus Jakarta Sans, DM Sans, JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-dark: #060911;
+      --bg-panel: rgba(11, 18, 33, 0.90);
+      --bg-card: rgba(18, 26, 46, 0.82);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-focus: rgba(56, 189, 248, 0.40);
+      --text-main: #F1F5F9;
+      --text-muted: #94A3B8;
+      --text-dim: #64748B;
+      --accent-blue: #38BDF8;
+      --accent-amber: #F59E0B;
+      --accent-crimson: #EF4444;
+      --accent-emerald: #10B981;
+      --accent-indigo: #6366F1;
+      --font-title: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-body: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #000000;
+      color: var(--text-main);
+      font-family: var(--font-body);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    #cesiumContainer {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 1;
+    }
+
+    .cesium-viewer-bottom,
+    .cesium-viewer-toolbar,
+    .cesium-viewer-animationContainer,
+    .cesium-viewer-timelineContainer {
+      display: none !important;
+    }
+
+    /* Glassmorphic Tactical Panels */
+    .hud-panel {
+      background: var(--bg-panel);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+      z-index: 10;
+    }
+
+    /* Top Navigation HUD */
+    #top-hud {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      right: 16px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .status-beacon {
+      width: 9px;
+      height: 9px;
+      background-color: var(--accent-emerald);
+      border-radius: 50%;
+      box-shadow: 0 0 12px var(--accent-emerald);
+      animation: pulse 2.4s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+      70% { transform: scale(1.05); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    .project-title {
+      font-family: var(--font-title);
+      font-size: 14.5px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      color: #FFFFFF;
+    }
+
+    .project-badge {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      color: #38BDF8;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.30);
+      padding: 3px 8px;
+      border-radius: 4px;
+      letter-spacing: 0.4px;
+    }
+
+    .telemetry-readout {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--accent-blue);
+    }
+
+    .telemetry-item span.label {
+      color: var(--text-muted);
+      margin-right: 4px;
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .view-toggle-group {
+      display: flex;
+      background: rgba(6, 10, 20, 0.60);
+      padding: 3px;
+      border-radius: 7px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .view-toggle-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 5px 13px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      font-weight: 600;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .view-toggle-btn.active {
+      background: #2563EB;
+      color: #FFFFFF;
+      box-shadow: 0 0 12px rgba(37, 99, 235, 0.5);
+    }
+
+    .mode-switch-btn {
+      background: rgba(37, 99, 235, 0.18);
+      border: 1px solid #3B82F6;
+      color: #FFFFFF;
+      padding: 6px 14px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+    .mode-switch-btn:hover {
+      background: #2563EB;
+      box-shadow: 0 0 14px rgba(37, 99, 235, 0.6);
+    }
+
+    /* Left Control Rail */
+    #left-rail {
+      position: absolute;
+      top: 86px;
+      left: 16px;
+      bottom: 48px;
+      width: 326px;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    #left-rail::-webkit-scrollbar { width: 4px; }
+    #left-rail::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 2px;
+    }
+
+    .panel-section-title {
+      font-family: var(--font-title);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--accent-blue);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .control-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 12px;
+    }
+
+    .spec-option {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px 10px;
+      margin-bottom: 6px;
+      border-radius: 6px;
+      cursor: pointer;
+      background: rgba(6, 10, 20, 0.35);
+      border: 1px solid transparent;
+      transition: all 0.15s ease;
+    }
+    .spec-option.active {
+      background: rgba(37, 99, 235, 0.16);
+      border-color: #3B82F6;
+    }
+    .spec-name { font-size: 12px; font-weight: 600; color: #FFFFFF; }
+    .spec-desc { font-size: 10.5px; color: var(--text-muted); margin-top: 2px; line-height: 1.35; }
+
+    /* Custom Range Sliders */
+    .slider-row { margin-top: 10px; }
+    .slider-header { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 5px; }
+    .slider-header span.val { font-family: var(--font-mono); color: var(--accent-amber); font-weight: 600; }
+
+    input[type="range"] {
+      width: 100%;
+      height: 5px;
+      accent-color: var(--accent-amber);
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 3px;
+      outline: none;
+    }
+
+    /* Diagnostics Grid */
+    .diag-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .diag-stat {
+      background: rgba(6, 10, 20, 0.45);
+      padding: 8px 10px;
+      border-radius: 5px;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+    .diag-label { font-size: 9.5px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .diag-value { font-family: var(--font-mono); font-size: 13px; font-weight: 700; color: #FFFFFF; margin-top: 2px; }
+
+    /* Dynamic Quick-Zoom Navigation */
+    #quick-zoom-bar {
+      position: absolute;
+      bottom: 54px;
+      left: 358px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 14px;
+      z-index: 10;
+    }
+    .zoom-title {
+      font-family: var(--font-title);
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--accent-blue);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-right: 2px;
+    }
+    .hotspot-chip {
+      background: rgba(6, 10, 20, 0.65);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      padding: 5px 11px;
+      border-radius: 5px;
+      font-size: 11px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+    .hotspot-chip:hover {
+      background: rgba(239, 68, 68, 0.22);
+      border-color: var(--accent-crimson);
+      transform: translateY(-1px);
+    }
+    .hotspot-chip span.rank {
+      font-family: var(--font-mono);
+      color: var(--accent-crimson);
+      font-weight: 700;
+    }
+
+    /* Right Area Inspector Drawer */
+    #inspector-drawer {
+      position: absolute;
+      top: 86px;
+      right: 16px;
+      width: 326px;
+      padding: 16px;
+      z-index: 10;
+    }
+    .zone-title { font-family: var(--font-title); font-size: 15.5px; font-weight: 700; color: #FFFFFF; }
+    .zone-id { font-family: var(--font-mono); font-size: 10.5px; color: var(--text-muted); margin-top: 2px; }
+    
+    .residual-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 8px;
+      padding: 4px 10px;
+      border-radius: 5px;
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      font-weight: 700;
+      background: rgba(239, 68, 68, 0.18);
+      border: 1px solid #EF4444;
+      color: #FCA5A5;
+    }
+
+    .metric-row {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      font-size: 11.5px;
+    }
+    .metric-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .metric-header span.k { color: var(--text-muted); font-size: 11px; }
+    .metric-header span.v { font-family: var(--font-mono); color: #FFFFFF; font-weight: 600; font-size: 11.5px; }
+
+    /* Metric benchmark mini progress bar */
+    .bar-track {
+      width: 100%;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-top: 2px;
+    }
+    .bar-fill {
+      height: 100%;
+      background: linear-gradient(to right, #38BDF8, #F59E0B);
+      border-radius: 2px;
+      transition: width 0.3s ease;
+    }
+
+    /* Mandatory Attribution Footer */
+    #footer-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 32px;
+      background: rgba(4, 7, 14, 0.96);
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 18px;
+      font-size: 10.5px;
+      color: var(--text-muted);
+      z-index: 10;
+    }
+    #footer-bar a { color: var(--accent-blue); text-decoration: none; }
+    #footer-bar a:hover { text-decoration: underline; }
+    .ethical-pill {
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid var(--accent-amber);
+      color: var(--accent-amber);
+      padding: 2px 8px;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 3D Cesium Container -->
+  <div id="cesiumContainer"></div>
+
+  <!-- Top Navigation HUD -->
+  <header id="top-hud" class="hud-panel">
+    <div class="brand-section">
+      <div class="status-beacon"></div>
+      <span class="project-title">AMMAN SHADOW ECONOMY 3D CONSOLE</span>
+      <span class="project-badge" id="view-badge">CONTINUOUS TERRAIN HEATMAP</span>
+    </div>
+
+    <div class="telemetry-readout">
+      <div class="telemetry-item">
+        <span class="label">LOCATION:</span>
+        <span id="coords-val">31.9749°N, 35.9152°E</span>
+      </div>
+      <div class="telemetry-item">
+        <span class="label">TERRAIN ELEV:</span>
+        <span id="elev-val">892 m</span>
+      </div>
+      <div class="telemetry-item">
+        <span class="label">LAYER:</span>
+        <span id="layer-mode-val" style="color: #38BDF8;">Continuous 3D Heatmap</span>
+      </div>
+    </div>
+
+    <div class="header-controls">
+      <div class="view-toggle-group">
+        <button id="btn-render-heat" class="view-toggle-btn active" onclick="setRenderMode('heatmap')">CONTINUOUS HEATMAP</button>
+        <button id="btn-render-extrude" class="view-toggle-btn" onclick="setRenderMode('extrude')">3D COLUMNS (1,035)</button>
+      </div>
+      <a href="index.html" class="mode-switch-btn">
+        <span>◫ 2D PLANAR</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Left Control Rail -->
+  <aside id="left-rail" class="hud-panel">
+    
+    <div class="control-card">
+      <div class="panel-section-title">Econometric Specification</div>
+      <div class="spec-option active" id="opt-primary" onclick="switchSpec('primary')">
+        <div>
+          <div class="spec-name">Primary OLS (Physical Scale)</div>
+          <div class="spec-desc">Controls for Ambient Population & Commercial Area. Standardized residuals isolate spatial economic surplus.</div>
+        </div>
+      </div>
+      <div class="spec-option" id="opt-extended" onclick="switchSpec('extended')">
+        <div>
+          <div class="spec-name">Extended (Urban Context)</div>
+          <div class="spec-desc">Adds small building share, street density & transit anchor distance controls.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Heatmap Calibration Sliders -->
+    <div class="control-card" id="card-heat-controls">
+      <div class="panel-section-title">Heatmap Calibration</div>
+      <div class="slider-row">
+        <div class="slider-header">
+          <span>Heat Influence Radius</span>
+          <span class="val" id="val-radius">55 px</span>
+        </div>
+        <input type="range" id="slider-radius" min="25" max="95" step="5" value="55" oninput="updateHeatRadius(this.value)">
+      </div>
+
+      <div class="slider-row">
+        <div class="slider-header">
+          <span>Heat Intensity Multiplier</span>
+          <span class="val" id="val-intensity">1.3x</span>
+        </div>
+        <input type="range" id="slider-intensity" min="0.5" max="3.0" step="0.1" value="1.3" oninput="updateHeatIntensity(this.value)">
+      </div>
+      <div style="font-size: 10px; color: var(--text-muted); margin-top: 8px; line-height: 1.35;">
+        * Continuous Heatmap blends 1,035 observation points into a seamless thermal density surface draped across Amman's terrain.
+      </div>
+    </div>
+
+    <!-- Spatial Diagnostics Card -->
+    <div class="control-card">
+      <div class="panel-section-title">Spatial Autocorrelation Diagnostics</div>
+      <div class="diag-grid">
+        <div class="diag-stat">
+          <div class="diag-label">Global Moran's I</div>
+          <div class="diag-value">0.1443</div>
+        </div>
+        <div class="diag-stat">
+          <div class="diag-label">Pseudo p-value</div>
+          <div class="diag-value" style="color: var(--accent-emerald);">&lt; 0.001</div>
+        </div>
+        <div class="diag-stat">
+          <div class="diag-label">Primary R²</div>
+          <div class="diag-value" id="diag-r2">0.614</div>
+        </div>
+        <div class="diag-stat">
+          <div class="diag-label">Extended R²</div>
+          <div class="diag-value">0.630</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Map Layers & Labels Control -->
+    <div class="control-card">
+      <div class="panel-section-title">Google Maps Layer Controls</div>
+      <label style="display: flex; align-items: center; gap: 8px; font-size: 11px; margin-bottom: 6px; cursor: pointer;">
+        <input type="checkbox" id="chk-roads" checked onchange="toggleRoads(this.checked)">
+        <span>Street & Highway Network (World Transportation)</span>
+      </label>
+      <label style="display: flex; align-items: center; gap: 8px; font-size: 11px; margin-bottom: 6px; cursor: pointer;">
+        <input type="checkbox" id="chk-labels" checked onchange="toggleLabels(this.checked)">
+        <span>Google Maps Style Place & Street Labels</span>
+      </label>
+      <label style="display: flex; align-items: center; gap: 8px; font-size: 11px; cursor: pointer;">
+        <input type="checkbox" id="chk-pins" checked onchange="toggleDistrictPins(this.checked)">
+        <span>Amman Major Neighborhood Floating Badges</span>
+      </label>
+    </div>
+
+    <div class="control-card">
+      <div class="panel-section-title">3D Camera & Orbit Controls</div>
+      <div style="font-size: 11px; color: var(--text-muted); line-height: 1.4;">
+        • <b>Left Click + Drag</b>: Pan across Amman<br>
+        • <b>Right Click + Drag / Scroll</b>: Zoom in/out<br>
+        • <b>Middle Click + Drag / Ctrl + Drag</b>: Tilt camera & orbit hills
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- Dynamic Priority Quick-Zoom Bar -->
+  <nav id="quick-zoom-bar" class="hud-panel">
+    <div class="zoom-title">Priority Quick-Zoom:</div>
+    <div id="hotspot-buttons" style="display: flex; gap: 8px;"></div>
+  </nav>
+
+  <!-- Right Area Inspector Drawer -->
+  <aside id="inspector-drawer" class="hud-panel">
+    <div style="border-bottom: 1px solid var(--border-subtle); padding-bottom: 12px; margin-bottom: 12px;">
+      <div class="panel-section-title" style="margin-bottom: 2px;">Area Profile</div>
+      <div class="zone-title" id="insp-district">Select a Neighborhood</div>
+      <div class="zone-id" id="insp-hex-id">Click anywhere on the map</div>
+      <div id="insp-pill-container" style="display: none;">
+        <div class="residual-pill" id="insp-pill">+0.00σ Priority Hotspot</div>
+      </div>
+    </div>
+
+    <div class="metric-row">
+      <div class="metric-header"><span class="k">Ambient Population:</span><span class="v" id="insp-ambient-pop">—</span></div>
+      <div class="bar-track"><div class="bar-fill" id="bar-ambient-pop" style="width: 50%;"></div></div>
+    </div>
+    
+    <div class="metric-row">
+      <div class="metric-header"><span class="k">Residential Census Pop:</span><span class="v" id="insp-res-pop">—</span></div>
+      <div class="bar-track"><div class="bar-fill" id="bar-res-pop" style="width: 40%;"></div></div>
+    </div>
+    
+    <div class="metric-row">
+      <div class="metric-header"><span class="k">Commercial Footprint:</span><span class="v" id="insp-comm-area">—</span></div>
+      <div class="bar-track"><div class="bar-fill" id="bar-comm-area" style="width: 30%;"></div></div>
+    </div>
+    
+    <div class="metric-row">
+      <div class="metric-header"><span class="k">Real VIIRS Mean Radiance:</span><span class="v" id="insp-radiance">—</span></div>
+      <div class="bar-track"><div class="bar-fill" id="bar-radiance" style="width: 60%;"></div></div>
+    </div>
+    
+    <div class="metric-row">
+      <div class="metric-header"><span class="k">Informal Sector Share:</span><span class="v" id="insp-sector-share">—</span></div>
+      <div class="bar-track"><div class="bar-fill" id="bar-sector-share" style="width: 20%;"></div></div>
+    </div>
+
+    <div class="metric-row">
+      <div class="metric-header"><span class="k">Small Building Share (&lt;100m²):</span><span class="v" id="insp-small-bldg">—</span></div>
+    </div>
+    <div class="metric-row">
+      <div class="metric-header"><span class="k">Street Intersection Density:</span><span class="v" id="insp-intersections">—</span></div>
+    </div>
+    <div class="metric-row">
+      <div class="metric-header"><span class="k">Civic / Transit Proximity:</span><span class="v" id="insp-anchor-access">—</span></div>
+    </div>
+  </aside>
+
+  <!-- Mandatory Attribution Footer -->
+  <footer id="footer-bar">
+    <div>
+      © <a href="https://cesium.com/" target="_blank">Cesium Ion</a> (World Terrain) · 
+      <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> (ODbL) · 
+      <a href="https://www.worldpop.org/" target="_blank">WorldPop</a> (CC-BY 4.0) · 
+      <a href="https://eogdata.mines.edu/" target="_blank">EOG VIIRS</a> (Payne Institute) · 
+      <a href="https://www.esri.com/" target="_blank">Esri Hybrid Reference</a>
+    </div>
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <span class="ethical-pill">PLANNING DECISION SUPPORT · NOT AN ENFORCEMENT AUDIT</span>
+      <span>German Jordanian University (GJU)</span>
+    </div>
+  </footer>
+
+  <script>
+    // Access token loaded securely from config.js (ignored by Git) or localStorage
+    const userToken = (typeof window !== 'undefined' && window.CESIUM_ION_TOKEN && window.CESIUM_ION_TOKEN !== 'YOUR_CESIUM_ION_TOKEN_HERE') 
+      ? window.CESIUM_ION_TOKEN 
+      : (localStorage.getItem('cesium_ion_token') || '');
+
+    if (userToken) {
+      Cesium.Ion.defaultAccessToken = userToken;
+    }
+
+    let viewer;
+    let heatmapImageryLayer = null;
+    let extrudedColumnEntities = [];
+    let hotspotBeaconEntities = [];
+    let districtLabelEntities = [];
+    let currentSpec = 'primary';
+    let renderMode = 'heatmap';
+    let roadsLayer, labelsLayer;
+
+    let heatRadius = 55;
+    let heatIntensity = 1.3;
+
+    const AMMAN_BBOX = {
+      west: 35.71035,
+      south: 31.81978,
+      east: 36.12007,
+      north: 32.12994
+    };
+
+    const AMMAN_NEIGHBORHOOD_PINS = [
+      { name: "Downtown (Al-Balad) · وسط البلد", lat: 31.9515, lng: 35.9394, alt: 950 },
+      { name: "Sweileh · صويلح", lat: 32.0280, lng: 35.8450, alt: 1250 },
+      { name: "Jabal Al-Weibdeh · جبل اللويبدة", lat: 31.9590, lng: 35.9230, alt: 1000 },
+      { name: "Jabal Amman · جبل عمّان", lat: 31.9520, lng: 35.9250, alt: 1020 },
+      { name: "Al-Abdali (Boulevard) · العبدلي", lat: 31.9660, lng: 35.9080, alt: 1020 },
+      { name: "Jabal Al-Hussein · جبل الحسين", lat: 31.9680, lng: 35.9220, alt: 1020 },
+      { name: "Abdoun · عبدون", lat: 31.9510, lng: 35.8850, alt: 1100 },
+      { name: "Bayader Wadi Al-Seer · البيادر", lat: 31.9530, lng: 35.8300, alt: 1120 },
+      { name: "Tla' Al-Ali · تلاع العلي", lat: 31.9960, lng: 35.8620, alt: 1200 },
+      { name: "Khalda · خلدا", lat: 31.9980, lng: 35.8420, alt: 1200 },
+      { name: "University of Jordan · الجامعة الأردنية", lat: 32.0150, lng: 35.8720, alt: 1200 },
+      { name: "Jubaiha · الجبيهة", lat: 32.0250, lng: 35.8680, alt: 1220 },
+      { name: "Shafa Badran · شفا بدران", lat: 32.0650, lng: 35.8920, alt: 1100 },
+      { name: "Abu Nseir · أبو نصير", lat: 32.0580, lng: 35.8610, alt: 1150 },
+      { name: "Marka · ماركا", lat: 31.9880, lng: 36.0020, alt: 880 },
+      { name: "Al-Quwaysimah · القويسمة", lat: 31.9180, lng: 35.9420, alt: 960 },
+      { name: "Al-Yarmouk (Wehdat) · الوحدات", lat: 31.9320, lng: 35.9450, alt: 940 },
+      { name: "Ras Al-Ein · راس العين", lat: 31.9420, lng: 35.9280, alt: 920 },
+      { name: "Tabarbour · طبربور", lat: 32.0080, lng: 35.9450, alt: 1020 },
+      { name: "Sahab · سحاب", lat: 31.9120, lng: 36.0450, alt: 980 },
+      { name: "Marj Al-Hamam · مرج الحمام", lat: 31.8950, lng: 35.8550, alt: 1080 }
+    ];
+
+    async function initCesium() {
+      viewer = new Cesium.Viewer('cesiumContainer', {
+        terrain: Cesium.Terrain.fromWorldTerrain({
+          requestVertexNormals: true,
+          requestWaterMask: false
+        }),
+        baseLayerPicker: false,
+        geocoder: false,
+        homeButton: false,
+        infoBox: false,
+        navigationHelpButton: false,
+        sceneModePicker: false,
+        selectionIndicator: false,
+        timeline: false,
+        animation: false,
+        shouldAnimate: true
+      });
+
+      viewer.scene.globe.enableLighting = false;
+      viewer.scene.globe.depthTestAgainstTerrain = true;
+      viewer.scene.screenSpaceCameraController.minimumZoomDistance = 300;
+      viewer.scene.screenSpaceCameraController.maximumZoomDistance = 50000;
+
+      try {
+        roadsLayer = viewer.imageryLayers.addImageryProvider(
+          new Cesium.UrlTemplateImageryProvider({
+            url: 'https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}',
+            credit: '© Esri Transportation Roads'
+          })
+        );
+        roadsLayer.alpha = 0.85;
+
+        labelsLayer = viewer.imageryLayers.addImageryProvider(
+          new Cesium.UrlTemplateImageryProvider({
+            url: 'https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
+            credit: '© Esri World Boundaries and Places'
+          })
+        );
+        labelsLayer.alpha = 0.95;
+      } catch (e) {
+        console.warn('Reference layers note:', e);
+      }
+
+      addNeighborhoodBadges();
+
+      viewer.camera.setView({
+        destination: Cesium.Cartesian3.fromDegrees(35.9152, 31.9050, 14200),
+        orientation: {
+          heading: Cesium.Math.toRadians(0.0),
+          pitch: Cesium.Math.toRadians(-42.0),
+          roll: 0.0
+        }
+      });
+
+      const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+      handler.setInputAction((movement) => {
+        const ray = viewer.camera.getPickRay(movement.endPosition);
+        const cartesian = viewer.scene.globe.pick(ray, viewer.scene);
+        if (cartesian) {
+          const cartographic = Cesium.Cartographic.fromCartesian(cartesian);
+          const lat = Cesium.Math.toDegrees(cartographic.latitude).toFixed(4);
+          const lng = Cesium.Math.toDegrees(cartographic.longitude).toFixed(4);
+          const elev = Math.round(cartographic.height);
+          document.getElementById('coords-val').innerText = `${lat}°N, ${lng}°E`;
+          document.getElementById('elev-val').innerText = `${elev} m`;
+        }
+      }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+
+      handler.setInputAction((click) => {
+        const pickedObject = viewer.scene.pick(click.position);
+        if (Cesium.defined(pickedObject) && pickedObject.id && pickedObject.id.properties) {
+          updateInspector(pickedObject.id.properties);
+          return;
+        }
+
+        const ray = viewer.camera.getPickRay(click.position);
+        const cartesian = viewer.scene.globe.pick(ray, viewer.scene);
+        if (cartesian) {
+          const cartographic = Cesium.Cartographic.fromCartesian(cartesian);
+          const lat = Cesium.Math.toDegrees(cartographic.latitude);
+          const lng = Cesium.Math.toDegrees(cartographic.longitude);
+          findNearestHexAndInspect(lat, lng);
+        }
+      }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+      initDataAndLayers();
+    }
+
+    function addNeighborhoodBadges() {
+      AMMAN_NEIGHBORHOOD_PINS.forEach((pin) => {
+        const entity = viewer.entities.add({
+          position: Cesium.Cartesian3.fromDegrees(pin.lng, pin.lat, pin.alt),
+          point: {
+            pixelSize: 8,
+            color: Cesium.Color.fromCssColorString('#38BDF8'),
+            outlineColor: Cesium.Color.BLACK,
+            outlineWidth: 2,
+            heightReference: Cesium.HeightReference.RELATIVE_TO_GROUND
+          },
+          label: {
+            text: pin.name,
+            font: 'bold 12px "Plus Jakarta Sans", sans-serif',
+            fillColor: Cesium.Color.WHITE,
+            outlineColor: Cesium.Color.BLACK,
+            outlineWidth: 3,
+            style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+            verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+            pixelOffset: new Cesium.Cartesian2(0, -10),
+            heightReference: Cesium.HeightReference.RELATIVE_TO_GROUND,
+            distanceDisplayCondition: new Cesium.DistanceDisplayCondition(500, 35000),
+            scaleByDistance: new Cesium.NearFarScalar(1000, 1.0, 35000, 0.65)
+          }
+        });
+        districtLabelEntities.push(entity);
+      });
+    }
+
+    // High-visibility palette: NEVER black/charcoal
+    function getColorForResidual(z) {
+      if (z >= 1.5) return Cesium.Color.fromCssColorString('#EF4444').withAlpha(0.85); // Vibrant Crimson Hotspot
+      if (z >= 0.5) return Cesium.Color.fromCssColorString('#F59E0B').withAlpha(0.80); // Amber Elevated
+      if (z >= -0.5) return Cesium.Color.fromCssColorString('#10B981').withAlpha(0.75); // Emerald Baseline
+      if (z >= -1.5) return Cesium.Color.fromCssColorString('#0284C7').withAlpha(0.75); // Vivid Sky Blue
+      return Cesium.Color.fromCssColorString('#6366F1').withAlpha(0.80); // Vibrant Indigo (Never black!)
+    }
+
+    // Minimum height of 160m ensures NO column is ever submerged into mountain hill slopes
+    function calculateColumnHeight(z) {
+      return Math.max(160, 160 + (z + 2.0) * 160);
+    }
+
+    function generateHeatmapCanvas(spec, radius, intensity) {
+      const geojson = window.AMMAN_HEXAGONS_GEOJSON;
+      if (!geojson || !geojson.features) return null;
+
+      const canvasWidth = 2048;
+      const canvasHeight = 2048;
+
+      const densityCanvas = document.createElement('canvas');
+      densityCanvas.width = canvasWidth;
+      densityCanvas.height = canvasHeight;
+      const ctx = densityCanvas.getContext('2d');
+
+      ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+      const west = AMMAN_BBOX.west;
+      const east = AMMAN_BBOX.east;
+      const south = AMMAN_BBOX.south;
+      const north = AMMAN_BBOX.north;
+
+      geojson.features.forEach(f => {
+        const p = f.properties;
+        const lng = p.centroid_lng;
+        const lat = p.centroid_lat;
+
+        if (lng < west || lng > east || lat < south || lat > north) return;
+
+        const x = ((lng - west) / (east - west)) * canvasWidth;
+        const y = (1.0 - ((lat - south) / (north - south))) * canvasHeight;
+
+        const z = parseFloat(spec === 'primary' ? (p.shadow_index_z || 0) : (p.shadow_index_ext_z || 0));
+        const w = Math.max(0.05, Math.min(1.0, (z + 2.0) / 6.0));
+
+        const r = radius * (0.8 + 0.4 * w);
+        const grad = ctx.createRadialGradient(x, y, 0, x, y, r);
+        const alpha = Math.min(1.0, w * 0.35 * intensity);
+
+        grad.addColorStop(0.0, `rgba(0, 0, 0, ${alpha})`);
+        grad.addColorStop(1.0, 'rgba(0, 0, 0, 0)');
+
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      const imgData = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
+      const data = imgData.data;
+
+      const lutCanvas = document.createElement('canvas');
+      lutCanvas.width = 256;
+      lutCanvas.height = 1;
+      const lutCtx = lutCanvas.getContext('2d');
+      const gradient = lutCtx.createLinearGradient(0, 0, 256, 0);
+
+      gradient.addColorStop(0.00, 'rgba(0, 0, 0, 0)');
+      gradient.addColorStop(0.12, 'rgba(30, 58, 138, 0.50)'); // Deep Blue
+      gradient.addColorStop(0.35, 'rgba(16, 185, 129, 0.72)'); // Emerald Green
+      gradient.addColorStop(0.60, 'rgba(245, 158, 11, 0.88)'); // Golden Amber
+      gradient.addColorStop(0.85, 'rgba(239, 68, 68, 0.96)');  // Radiant Crimson Hotspot
+      gradient.addColorStop(1.00, 'rgba(255, 255, 255, 0.98)'); // Core White
+
+      lutCtx.fillStyle = gradient;
+      lutCtx.fillRect(0, 0, 256, 1);
+      const lutData = lutCtx.getImageData(0, 0, 256, 1).data;
+
+      for (let i = 0; i < data.length; i += 4) {
+        const alpha = data[i + 3];
+        if (alpha > 0) {
+          const lutIdx = alpha * 4;
+          data[i]     = lutData[lutIdx];
+          data[i + 1] = lutData[lutIdx + 1];
+          data[i + 2] = lutData[lutIdx + 2];
+          data[i + 3] = lutData[lutIdx + 3];
+        }
+      }
+
+      ctx.putImageData(imgData, 0, 0);
+      return densityCanvas;
+    }
+
+    function updateDrapedHeatmapLayer() {
+      const canvas = generateHeatmapCanvas(currentSpec, heatRadius, heatIntensity);
+      if (!canvas) return;
+
+      const rect = Cesium.Rectangle.fromDegrees(
+        AMMAN_BBOX.west, AMMAN_BBOX.south, AMMAN_BBOX.east, AMMAN_BBOX.north
+      );
+
+      if (heatmapImageryLayer) {
+        viewer.imageryLayers.remove(heatmapImageryLayer, true);
+        heatmapImageryLayer = null;
+      }
+
+      heatmapImageryLayer = viewer.imageryLayers.addImageryProvider(
+        new Cesium.SingleTileImageryProvider({
+          url: canvas.toDataURL('image/png'),
+          rectangle: rect
+        }),
+        1
+      );
+      heatmapImageryLayer.alpha = 0.88;
+      heatmapImageryLayer.show = (renderMode === 'heatmap');
+    }
+
+    function initDataAndLayers() {
+      if (!window.AMMAN_HEXAGONS_GEOJSON || !window.AMMAN_ECONOMETRIC_SUMMARY) {
+        console.error('Offline data bundle not found.');
+        return;
+      }
+
+      const summary = window.AMMAN_ECONOMETRIC_SUMMARY;
+      const geojson = window.AMMAN_HEXAGONS_GEOJSON;
+
+      populateQuickZoom(summary.dynamic_priority_hotspots);
+
+      summary.dynamic_priority_hotspots.forEach(spot => {
+        const ent = viewer.entities.add({
+          position: Cesium.Cartesian3.fromDegrees(spot.centroid_lng, spot.centroid_lat, 100),
+          point: {
+            pixelSize: 12,
+            color: Cesium.Color.fromCssColorString('#EF4444'),
+            outlineColor: Cesium.Color.WHITE,
+            outlineWidth: 2,
+            heightReference: Cesium.HeightReference.RELATIVE_TO_GROUND
+          },
+          label: {
+            text: `#${spot.rank} ${spot.district_name} (${spot.residual_z >= 0 ? '+' : ''}${spot.residual_z.toFixed(2)}σ)`,
+            font: 'bold 11px "JetBrains Mono", sans-serif',
+            fillColor: Cesium.Color.fromCssColorString('#FCA5A5'),
+            outlineColor: Cesium.Color.BLACK,
+            outlineWidth: 3,
+            style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+            verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+            pixelOffset: new Cesium.Cartesian2(0, -12),
+            heightReference: Cesium.HeightReference.RELATIVE_TO_GROUND,
+            distanceDisplayCondition: new Cesium.DistanceDisplayCondition(200, 25000)
+          },
+          properties: spot
+        });
+        hotspotBeaconEntities.push(ent);
+      });
+
+      geojson.features.forEach((feature) => {
+        const props = feature.properties;
+        const coords = feature.geometry.coordinates[0];
+        const flatDegrees = [];
+        coords.forEach(pt => { flatDegrees.push(pt[0], pt[1]); });
+
+        const z = parseFloat(props.shadow_index_z || 0);
+        const colHeight = calculateColumnHeight(z);
+
+        const entity = viewer.entities.add({
+          polygon: {
+            hierarchy: Cesium.Cartesian3.fromDegreesArray(flatDegrees),
+            heightReference: Cesium.HeightReference.RELATIVE_TO_GROUND,
+            extrudedHeightReference: Cesium.HeightReference.RELATIVE_TO_GROUND,
+            height: 0,
+            extrudedHeight: colHeight,
+            material: getColorForResidual(z),
+            outline: true,
+            outlineColor: Cesium.Color.WHITE.withAlpha(0.55),
+            outlineWidth: 2,
+            show: false
+          },
+          properties: props
+        });
+
+        extrudedColumnEntities.push({ entity, props });
+      });
+
+      updateDrapedHeatmapLayer();
+
+      if (summary.dynamic_priority_hotspots.length > 0) {
+        updateInspector(summary.dynamic_priority_hotspots[0]);
+      }
+    }
+
+    function setRenderMode(mode) {
+      renderMode = mode;
+      document.getElementById('btn-render-heat').classList.toggle('active', mode === 'heatmap');
+      document.getElementById('btn-render-extrude').classList.toggle('active', mode === 'extrude');
+      document.getElementById('layer-mode-val').innerText = mode === 'heatmap' ? 'Continuous 3D Heatmap' : '3D Extruded Columns';
+      document.getElementById('view-badge').innerText = mode === 'heatmap' ? 'CONTINUOUS TERRAIN HEATMAP' : '3D EXTRUDED COLUMNS (1,035)';
+
+      if (heatmapImageryLayer) {
+        heatmapImageryLayer.show = (mode === 'heatmap');
+      }
+
+      extrudedColumnEntities.forEach(({ entity }) => {
+        entity.polygon.show = (mode === 'extrude');
+      });
+    }
+
+    function switchSpec(spec) {
+      currentSpec = spec;
+      document.getElementById('opt-primary').classList.toggle('active', spec === 'primary');
+      document.getElementById('opt-extended').classList.toggle('active', spec === 'extended');
+
+      extrudedColumnEntities.forEach(({ entity, props }) => {
+        const z = parseFloat(spec === 'primary' ? props.shadow_index_z : props.shadow_index_ext_z || 0);
+        entity.polygon.material = getColorForResidual(z);
+        entity.polygon.extrudedHeight = calculateColumnHeight(z);
+      });
+
+      updateDrapedHeatmapLayer();
+
+      const summary = window.AMMAN_ECONOMETRIC_SUMMARY;
+      if (summary) {
+        document.getElementById('diag-r2').innerText = 
+          spec === 'primary' ? summary.primary_specification.r_squared.toFixed(3) : summary.extended_specification.r_squared.toFixed(3);
+      }
+    }
+
+    function updateHeatRadius(val) {
+      heatRadius = parseFloat(val);
+      document.getElementById('val-radius').innerText = `${heatRadius} px`;
+      updateDrapedHeatmapLayer();
+    }
+
+    function updateHeatIntensity(val) {
+      heatIntensity = parseFloat(val);
+      document.getElementById('val-intensity').innerText = `${heatIntensity}x`;
+      updateDrapedHeatmapLayer();
+    }
+
+    function toggleRoads(enabled) {
+      if (roadsLayer) roadsLayer.show = enabled;
+    }
+
+    function toggleLabels(enabled) {
+      if (labelsLayer) labelsLayer.show = enabled;
+    }
+
+    function toggleDistrictPins(enabled) {
+      districtLabelEntities.forEach(ent => { ent.show = enabled; });
+    }
+
+    function findNearestHexAndInspect(lat, lng) {
+      const geojson = window.AMMAN_HEXAGONS_GEOJSON;
+      if (!geojson || !geojson.features) return;
+
+      let nearest = null;
+      let minDistance = Infinity;
+
+      for (let i = 0; i < geojson.features.length; i++) {
+        const props = geojson.features[i].properties;
+        const dLat = (lat - props.centroid_lat) * 111.0;
+        const dLng = (lng - props.centroid_lng) * 94.0;
+        const dist = dLat * dLat + dLng * dLng;
+        if (dist < minDistance) {
+          minDistance = dist;
+          nearest = props;
+        }
+      }
+
+      if (nearest) {
+        updateInspector(nearest);
+      }
+    }
+
+    function populateQuickZoom(hotspots) {
+      const container = document.getElementById('hotspot-buttons');
+      container.innerHTML = '';
+
+      hotspots.forEach((spot) => {
+        const chip = document.createElement('div');
+        chip.className = 'hotspot-chip';
+        chip.innerHTML = `<span class="rank">#${spot.rank}</span> ${spot.district_name} (${spot.residual_z >= 0 ? '+' : ''}${spot.residual_z.toFixed(2)}σ)`;
+        chip.onclick = () => {
+          viewer.camera.flyTo({
+            destination: Cesium.Cartesian3.fromDegrees(spot.centroid_lng, spot.centroid_lat - 0.015, 2600),
+            orientation: {
+              heading: Cesium.Math.toRadians(0.0),
+              pitch: Cesium.Math.toRadians(-38.0),
+              roll: 0.0
+            },
+            duration: 2.0
+          });
+          updateInspector(spot);
+        };
+        container.appendChild(chip);
+      });
+    }
+
+    function updateInspector(props) {
+      const getVal = (k) => (props[k] && typeof props[k].getValue === 'function') ? props[k].getValue() : props[k];
+
+      document.getElementById('insp-district').innerText = getVal('district_name') || 'Amman Neighborhood';
+      document.getElementById('insp-hex-id').innerText = `Grid Centroid: ${parseFloat(getVal('centroid_lat') || 31.95).toFixed(4)}°N, ${parseFloat(getVal('centroid_lng') || 35.92).toFixed(4)}°E`;
+
+      const z = parseFloat(getVal('residual_z') !== undefined ? getVal('residual_z') : getVal('shadow_index_z') || 0);
+      const pill = document.getElementById('insp-pill');
+      pill.innerText = `${z >= 0 ? '+' : ''}${z.toFixed(2)}σ Priority Hotspot`;
+      if (z >= 1.5) {
+        pill.style.borderColor = '#EF4444'; pill.style.color = '#FCA5A5'; pill.style.background = 'rgba(239, 68, 68, 0.2)';
+      } else if (z >= 0.5) {
+        pill.style.borderColor = '#F59E0B'; pill.style.color = '#FCD34D'; pill.style.background = 'rgba(245, 158, 11, 0.2)';
+      } else if (z >= -0.5) {
+        pill.style.borderColor = '#10B981'; pill.style.color = '#6EE7B7'; pill.style.background = 'rgba(16, 185, 129, 0.2)';
+      } else if (z >= -1.5) {
+        pill.style.borderColor = '#0284C7'; pill.style.color = '#7DD3FC'; pill.style.background = 'rgba(2, 132, 199, 0.2)';
+      } else {
+        pill.style.borderColor = '#6366F1'; pill.style.color = '#C7D2FE'; pill.style.background = 'rgba(99, 102, 241, 0.2)';
+      }
+      document.getElementById('insp-pill-container').style.display = 'block';
+
+      const ambient = Number(getVal('ambient_pop') || 0);
+      const res = Number(getVal('res_pop') || 0);
+      const comm = Number(getVal('comm_area_m2') || 0);
+      const rad = parseFloat(getVal('viirs_radiance') || getVal('viirs_mean_radiance') || 0);
+      const informalShare = parseFloat(getVal('informal_sector_share') || 0);
+
+      document.getElementById('insp-ambient-pop').innerText = ambient.toLocaleString();
+      document.getElementById('insp-res-pop').innerText = res.toLocaleString();
+      document.getElementById('insp-comm-area').innerText = `${comm.toLocaleString()} m²`;
+      document.getElementById('insp-radiance').innerText = `${rad.toFixed(2)} nW/cm²`;
+      document.getElementById('insp-sector-share').innerText = `${(informalShare * 100).toFixed(1)}%`;
+      document.getElementById('insp-small-bldg').innerText = `${(parseFloat(getVal('small_building_share') || 0) * 100).toFixed(1)}%`;
+      document.getElementById('insp-intersections').innerText = `${parseFloat(getVal('intersection_density') || 0).toFixed(1)} / km²`;
+      document.getElementById('insp-anchor-access').innerText = parseFloat(getVal('anchor_accessibility') || 0).toFixed(2);
+
+      // Comparative benchmarks relative to Amman citywide medians
+      document.getElementById('bar-ambient-pop').style.width = `${Math.min(100, Math.max(5, (ambient / 45000) * 100))}%`;
+      document.getElementById('bar-res-pop').style.width = `${Math.min(100, Math.max(5, (res / 25000) * 100))}%`;
+      document.getElementById('bar-comm-area').style.width = `${Math.min(100, Math.max(5, (comm / 12000) * 100))}%`;
+      document.getElementById('bar-radiance').style.width = `${Math.min(100, Math.max(5, (rad / 50.0) * 100))}%`;
+      document.getElementById('bar-sector-share').style.width = `${Math.min(100, Math.max(5, (informalShare / 0.40) * 100))}%`;
+    }
+
+    window.onload = initCesium;
+  </script>
+</body>
+</html>

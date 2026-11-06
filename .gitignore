@@ -1,0 +1,45 @@
+# ==============================================================================
+# .gitignore - Amman Shadow Economy Nowcaster
+# ==============================================================================
+
+# Private Configuration & API Tokens (CRITICAL FOR GITHUB PRIVACY)
+dashboard/public/config.js
+dashboard/config/tokens.json
+config.js
+.env
+.env.local
+.env.*.local
+
+# Python Virtual Environments & Dependencies
+.venv/
+venv/
+env/
+ENV/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Mac OS System Files
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Legacy / Unused Large Archives (e.g., GEV initial reference clone)
+dashboard/archive_gev/
+
+# Large Binary & Raw Spatial Datasets (> 25MB)
+# (Processed scored GeoJSON in data/boundaries/ is tracked for zero-dependency execution)
+*.pbf
+data/*.pbf
+data/rasters/*.tif
+!data/rasters/viirs_2023_amman.tif
+
+# Temporary and Scratch Working Files
+tmp/
+temp/
+*.log

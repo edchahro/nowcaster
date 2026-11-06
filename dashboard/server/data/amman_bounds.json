@@ -1,0 +1,16 @@
+{
+  "min_lng": 35.71035,
+  "min_lat": 31.81978,
+  "max_lng": 36.12007,
+  "max_lat": 32.12994,
+  "center_lng": 35.91521,
+  "center_lat": 31.97486,
+  "buffer_percentage": 0.1,
+  "empirical_hex_count_res8": 1035,
+  "urban_envelope": {
+    "raw_min_lng": 35.74449,
+    "raw_min_lat": 31.84562,
+    "raw_max_lng": 36.08592,
+    "raw_max_lat": 32.10409
+  }
+}
