@@ -96,7 +96,7 @@ def main():
     print("=" * 70)
     
     if not FEATURE_FILE.exists():
-        print(f"[!] Error: {FEATURE_FILE} not found. Run 03_osm_ingestion.py first.")
+        print(f"[!] Error: {FEATURE_FILE} not found. Run 03d_process_real_osm.py first.")
         sys.exit(1)
         
     gdf = gpd.read_file(FEATURE_FILE)
@@ -112,14 +112,16 @@ def main():
     # -------------------------------------------------------------
     # Step 1: Construct Observed Activity Intensity (Y_h)
     # -------------------------------------------------------------
-    # Based on the 50% Zero-Inflation Gate (91.2% zeroes in vendors):
-    # Binary presence indicator I(Vendors > 0) is standardized alongside log VIIRS radiance.
-    std_vendor_binary = standardize(gdf["osm_vendor_binary"])
+    # Enforce Pre-Registered Rule 1 from docs/DECISIONS.md:
+    # Zero vendor fraction is 98.94% (> 90% threshold).
+    # Relegate sparse vendor presence to the macro scale.
+    # Micro-hexagons rely on continuous physical nocturnal radiance (I2)
+    # and empirical Bayes shrunk informal sector share (I3).
     std_log_radiance = standardize(np.log(gdf["viirs_mean_radiance"] + 1.0))
     std_shrunk_sector = standardize(gdf["informal_sector_share"])
     
-    # Baseline composite: 40% vendor binary, 60% VIIRS radiance
-    Y_h = 0.40 * std_vendor_binary + 0.60 * std_log_radiance
+    # Core continuous physical outcome (unbiased by 11-cell sparse vendor binary artifact)
+    Y_h = std_log_radiance
     gdf["Y_observed"] = Y_h
     
     # Scale controls (log-transformed)
@@ -198,18 +200,31 @@ def main():
     # -------------------------------------------------------------
     print("\n[*] Estimating Spatial Error Model (SEM) for Coefficient Inference...")
     try:
-        y_vec = Y_h.values.reshape(-1, 1)
+        y_vec = np.asarray(Y_h).reshape(-1, 1)
         x_mat = X_primary[[c for c in X_primary.columns if c != 'const']].values
         sem_model = GM_Error_Het(y_vec, x_mat, w=w_queen)
         sem_lambda = float(sem_model.betas[-1][0])
-        print(f"    SEM Spatial Lambda (λ): {sem_lambda:.4f}")
+        sem_lambda_se = float(sem_model.std_err[-1])
+        sem_lambda_z = float(sem_lambda / sem_lambda_se) if sem_lambda_se > 0 else 0.0
+        print(f"    [✓] SEM Converged! Spatial Lambda (λ): {sem_lambda:.4f} (se={sem_lambda_se:.4f}, z={sem_lambda_z:.2f})")
         sem_status = "converged"
+        sem_estimates = {}
+        var_names = ["const"] + [c for c in X_primary.columns if c != 'const'] + ["lambda"]
+        for vname, b_val, se_val in zip(var_names, sem_model.betas.flatten(), sem_model.std_err.flatten()):
+            z_val = float(b_val / se_val) if se_val > 0 else 0.0
+            p_val = float(2 * (1 - stats.norm.cdf(abs(z_val))))
+            sem_estimates[vname] = {
+                "coef": float(b_val),
+                "std_err": float(se_val),
+                "z_stat": z_val,
+                "p_value": p_val
+            }
     except Exception as ex:
-        print(f"    [!] SEM note: {ex}")
-        sem_lambda = 0.32
-        sem_status = "approximated"
+        print(f"    [!] SEM estimation failed: {ex}")
+        sem_lambda = None
+        sem_status = "failed"
+        sem_estimates = {}
 
-    # -------------------------------------------------------------
     # Step 6: Extended Specification (Context Covariates Included)
     # -------------------------------------------------------------
     print("\n[*] Estimating Extended Specification (Scale + Urban Context Covariates)...")
@@ -230,23 +245,15 @@ def main():
     # -------------------------------------------------------------
     # Step 7: Leave-One-Indicator-Out (LOIO) Sensitivity
     # -------------------------------------------------------------
-    print("\n[*] Running Leave-One-Indicator-Out (LOIO) Sensitivity...")
-    # Drop vendor binary (use VIIRS only)
-    Y_drop_vendor = std_log_radiance
-    ols_drop_v = sm.OLS(Y_drop_vendor, X_primary).fit()
-    z_drop_v = standardize(ols_drop_v.resid)
-    rho_drop_vendor, _ = stats.spearmanr(z_h, z_drop_v)
-    
-    # Drop VIIRS (use vendor binary only)
-    Y_drop_viirs = std_vendor_binary
-    ols_drop_rad = sm.OLS(Y_drop_viirs, X_primary).fit()
-    z_drop_rad = standardize(ols_drop_rad.resid)
-    rho_drop_viirs, _ = stats.spearmanr(z_h, z_drop_rad)
-    
-    print(f"    LOIO Rank Stability (Drop Vendor): rho = {rho_drop_vendor:.4f}")
-    print(f"    LOIO Rank Stability (Drop VIIRS):  rho = {rho_drop_viirs:.4f}")
+    print("\n[*] Running Indicator Sensitivity Analysis...")
+    # Base specification: Pure VIIRS Radiance
+    # Alternative composite: Blended with Informal Sector Share (80/20)
+    Y_sector_alt = 0.80 * std_log_radiance + 0.20 * std_shrunk_sector
+    ols_alt_comp = sm.OLS(Y_sector_alt, X_primary).fit()
+    z_alt_comp = standardize(ols_alt_comp.resid)
+    rho_comp_sens, _ = stats.spearmanr(z_h, z_alt_comp)
+    print(f"    Composite vs Pure Radiance Spearman Rank Stability: rho = {rho_comp_sens:.4f}")
 
-    # -------------------------------------------------------------
     # Step 8: Dirichlet Monte Carlo Weight Sensitivity (1,000 Draws)
     # -------------------------------------------------------------
     print("\n[*] Executing 1,000 Dirichlet Monte Carlo Weight Simulations...")
@@ -255,8 +262,8 @@ def main():
     sim_ranks = np.zeros((n, n_sims))
     
     for s in range(n_sims):
-        w_v, w_r = dirichlet_weights[s]
-        Y_s = w_v * std_vendor_binary + w_r * std_log_radiance
+        w_sec, w_rad = dirichlet_weights[s]
+        Y_s = (1.0 - 0.3 * w_sec) * std_log_radiance + (0.3 * w_sec) * std_shrunk_sector
         res_s = sm.OLS(Y_s, X_primary).fit().resid
         sim_ranks[:, s] = stats.rankdata(-res_s)  # Rank 1 = highest residual
         
@@ -364,12 +371,12 @@ def main():
             "morans_expected_i": float(moran.EI),
             "morans_pseudo_pvalue": float(moran.p_sim),
             "morans_z_score": float(moran.z_sim),
-            "sem_spatial_lambda": float(sem_lambda),
+            "sem_spatial_lambda": float(sem_lambda) if sem_lambda is not None else None,
+            "sem_coefficients": sem_estimates,
             "sem_status": sem_status
         },
         "sensitivity_audits": {
-            "loio_drop_vendor_spearman": float(rho_drop_vendor),
-            "loio_drop_viirs_spearman": float(rho_drop_viirs),
+            "composite_sensitivity_spearman": float(rho_comp_sens),
             "dirichlet_simulations_count": n_sims
         },
         "dynamic_priority_hotspots": dynamic_fly_to

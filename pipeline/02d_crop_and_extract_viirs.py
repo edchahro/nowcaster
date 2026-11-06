@@ -82,17 +82,17 @@ def extract_zonal_radiance():
         
         for i, geom in enumerate(gdf.geometry):
             try:
-                out_img, _ = mask(src, [geom], crop=True)
+                # Use filled=False so pixels outside the polygon are masked out (Audit Finding 1)
+                out_img, _ = mask(src, [geom], crop=True, filled=False)
                 data = out_img[0]
-                valid = (data != nodata) & (~np.isnan(data)) & (data >= 0)
-                if np.any(valid):
-                    mean_val = float(np.mean(data[valid]))
-                    max_val = float(np.max(data[valid]))
+                if np.ma.count(data) > 0:
+                    mean_val = float(np.ma.mean(data))
+                    max_val = float(np.ma.max(data))
                 else:
                     mean_val = 0.0
                     max_val = 0.0
-                mean_rads[i] = round(mean_val, 2)
-                max_rads[i] = round(max_val, 2)
+                mean_rads[i] = round(mean_val, 4)
+                max_rads[i] = round(max_val, 4)
             except Exception as e:
                 mean_rads[i] = 0.0
                 max_rads[i] = 0.0

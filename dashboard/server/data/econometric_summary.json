@@ -8,175 +8,200 @@
     "vendor_zero_inflation_gate_triggered": true
   },
   "primary_specification": {
-    "r_squared": 0.5975244132360726,
-    "adj_r_squared": 0.5967444217888558,
-    "f_statistic": 766.0653400343026,
-    "f_pvalue": 1.1107179193864495e-204,
+    "r_squared": 0.8456786359086214,
+    "adj_r_squared": 0.8453795634975916,
+    "f_statistic": 2827.6718437407003,
+    "f_pvalue": 0.0,
     "vif": {
       "log_ambient_pop": 1.3940174461318025,
       "log_comm_area": 1.3940174461318025
     },
     "coefficients": {
       "const": {
-        "coef": -2.117742539483922,
-        "std_err": 0.06540604666638046,
-        "t_stat": -32.3783907975051,
-        "p_value": 2.77099967385629e-159
+        "coef": -3.491591529845816,
+        "std_err": 0.0534659614310302,
+        "t_stat": -65.30494236692789,
+        "p_value": 0.0
       },
       "log_ambient_pop": {
-        "coef": 0.2742586429600145,
-        "std_err": 0.008874290801107134,
-        "t_stat": 30.90485190386129,
-        "p_value": 5.36858651328905e-149
+        "coef": 0.45800551827588126,
+        "std_err": 0.007254260330392739,
+        "t_stat": 63.136074171063726,
+        "p_value": 0.0
       },
       "log_comm_area": {
-        "coef": 0.02291336893372704,
-        "std_err": 0.005853156222098571,
-        "t_stat": 3.914703121576987,
-        "p_value": 9.645435421102358e-05
+        "coef": 0.004962494875820818,
+        "std_err": 0.004784643634200478,
+        "t_stat": 1.0371712618990192,
+        "p_value": 0.29989900171587847
       }
     }
   },
   "alternative_specification": {
     "scale_variable": "res_pop",
-    "r_squared": 0.5941943872094502,
-    "adj_r_squared": 0.593407942223422,
-    "f_statistic": 755.5447587126531,
+    "r_squared": 0.8539245280249992,
+    "adj_r_squared": 0.8536414360250476,
+    "f_statistic": 3016.4205564662325,
     "coefficients": {
-      "const": -2.0948979144523205,
-      "log_res_pop": 0.27061137954949316,
-      "log_comm_area": 0.04719960341624362
+      "const": -3.490339283629843,
+      "log_res_pop": 0.45707745628055313,
+      "log_comm_area": 0.04414852096182425
     }
   },
   "extended_specification": {
-    "r_squared": 0.634036081717555,
-    "spearman_correlation_with_primary": 0.866483070645883,
-    "p_value": 6.030141084e-314,
+    "r_squared": 0.8751454782241264,
+    "spearman_correlation_with_primary": 0.8668739982338504,
+    "p_value": 1.476975552e-314,
     "coefficients": {
-      "const": -1.5994709167123469,
-      "log_ambient_pop": 0.21071634530399844,
-      "log_comm_area": -0.002838489551169869,
-      "small_building_share": 0.0005966486181816729,
-      "intersection_density": 0.16190326274588857,
-      "anchor_accessibility": 0.09602731831623254
+      "const": -2.8432982778471065,
+      "log_ambient_pop": 0.3783463636892483,
+      "log_comm_area": -0.026260535461832442,
+      "small_building_share": -0.04203489662472528,
+      "intersection_density": 0.18252756548427593,
+      "anchor_accessibility": 0.10778521366767649
     }
   },
   "spatial_diagnostics": {
-    "morans_i": 0.14352522685258973,
+    "morans_i": 0.451686775505848,
     "morans_expected_i": -0.0009671179883945841,
     "morans_pseudo_pvalue": 0.001,
-    "morans_z_score": 7.961006138802238,
-    "sem_spatial_lambda": 0.32,
-    "sem_status": "approximated"
+    "morans_z_score": 25.20367254529784,
+    "sem_spatial_lambda": 0.8408857432339889,
+    "sem_coefficients": {
+      "const": {
+        "coef": -2.6426927956043724,
+        "std_err": 0.15655313603273413,
+        "z_stat": -16.88048455989923,
+        "p_value": 0.0
+      },
+      "log_ambient_pop": {
+        "coef": 0.3479600007633546,
+        "std_err": 0.018496251187022042,
+        "z_stat": 18.812460819493083,
+        "p_value": 0.0
+      },
+      "log_comm_area": {
+        "coef": -0.005408048636919682,
+        "std_err": 0.0046420767823521685,
+        "z_stat": -1.1650062871599878,
+        "p_value": 0.24401644791136068
+      },
+      "lambda": {
+        "coef": 0.8408857432339889,
+        "std_err": 0.017085897921219704,
+        "z_stat": 49.215191798006536,
+        "p_value": 0.0
+      }
+    },
+    "sem_status": "converged"
   },
   "sensitivity_audits": {
-    "loio_drop_vendor_spearman": 0.9388231498314756,
-    "loio_drop_viirs_spearman": 0.13078394651710396,
+    "composite_sensitivity_spearman": 0.8565660606363662,
     "dirichlet_simulations_count": 1000
   },
   "dynamic_priority_hotspots": [
     {
       "rank": 1,
-      "hex_id": "882db3c0c7fffff",
-      "district_name": "Downtown (Al-Balad)",
-      "centroid_lng": 35.941482,
-      "centroid_lat": 31.955548,
-      "residual_z": 9.4302,
-      "ambient_pop": 19740,
-      "comm_area_m2": 560.4271779071206,
-      "viirs_radiance": 63.74
+      "hex_id": "882db3da91fffff",
+      "district_name": "Marj Al-Hamam",
+      "centroid_lng": 35.793846,
+      "centroid_lat": 31.875245,
+      "residual_z": 5.0561,
+      "ambient_pop": 0,
+      "comm_area_m2": 0.0,
+      "viirs_radiance": 6.7171
     },
     {
       "rank": 2,
-      "hex_id": "882db3d439fffff",
-      "district_name": "Abu Nseir",
-      "centroid_lng": 35.845627,
-      "centroid_lat": 32.077554,
-      "residual_z": 8.6968,
-      "ambient_pop": 9074,
+      "hex_id": "882db3ced5fffff",
+      "district_name": "Marka",
+      "centroid_lng": 36.074556,
+      "centroid_lat": 31.972788,
+      "residual_z": 3.9405,
+      "ambient_pop": 0,
       "comm_area_m2": 0.0,
-      "viirs_radiance": 24.99
+      "viirs_radiance": 4.426
     },
     {
       "rank": 3,
-      "hex_id": "882db3d093fffff",
-      "district_name": "Badr Al-Jadida",
-      "centroid_lng": 35.795836,
-      "centroid_lat": 32.004686,
-      "residual_z": 8.5543,
-      "ambient_pop": 2891,
+      "hex_id": "882db3c615fffff",
+      "district_name": "Shafa Badran",
+      "centroid_lng": 35.970222,
+      "centroid_lat": 32.090138,
+      "residual_z": 3.7801,
+      "ambient_pop": 21,
       "comm_area_m2": 0.0,
-      "viirs_radiance": 14.91
+      "viirs_radiance": 15.0928
     },
     {
       "rank": 4,
-      "hex_id": "882db3c031fffff",
-      "district_name": "Al-Quwaysimah",
-      "centroid_lng": 35.925507,
-      "centroid_lat": 31.919398,
-      "residual_z": 8.2116,
-      "ambient_pop": 17602,
-      "comm_area_m2": 476.7872306275152,
-      "viirs_radiance": 28.17
+      "hex_id": "882db3c63bfffff",
+      "district_name": "Shafa Badran",
+      "centroid_lng": 35.979384,
+      "centroid_lat": 32.085946,
+      "residual_z": 3.1081,
+      "ambient_pop": 8,
+      "comm_area_m2": 0.0,
+      "viirs_radiance": 8.3671
     },
     {
       "rank": 5,
-      "hex_id": "882db3c093fffff",
+      "hex_id": "882db3c6a3fffff",
       "district_name": "Marka",
-      "centroid_lng": 35.984924,
-      "centroid_lat": 31.979118,
-      "residual_z": 7.897,
-      "ambient_pop": 25733,
-      "comm_area_m2": 4691.660553674614,
-      "viirs_radiance": 28.37
+      "centroid_lng": 36.032497,
+      "centroid_lat": 32.096381,
+      "residual_z": 3.0079,
+      "ambient_pop": 0,
+      "comm_area_m2": 0.0,
+      "viirs_radiance": 3.0422
     }
   ],
   "macro_scale_models": {
     "path_a_gam_22_districts": {
       "n_units": 22,
-      "r_squared": 0.31408006890968665,
-      "f_statistic": 4.350013054583712,
-      "p_value": 0.0278354030450387,
+      "r_squared": 0.32309794548706083,
+      "f_statistic": 4.534526763012512,
+      "p_value": 0.02454682952216498,
       "top_discrepancy_districts": [
         {
           "rank": 1,
           "district_name": "Al-Madinah (Downtown)",
           "name_ar": "\u0627\u0644\u0645\u062f\u064a\u0646\u0629 (\u0648\u0633\u0637 \u0627\u0644\u0628\u0644\u062f)",
-          "residual_z": 2.9346,
+          "residual_z": 2.9068,
           "registered_licenses": 16500,
-          "observed_activity": 2.5446
+          "observed_activity": 2.5158
         },
         {
           "rank": 2,
           "district_name": "Badr",
           "name_ar": "\u0628\u062f\u0631",
-          "residual_z": 2.1008,
+          "residual_z": 2.0649,
           "registered_licenses": 7200,
-          "observed_activity": 1.1057
+          "observed_activity": 1.0653
         },
         {
           "rank": 3,
           "district_name": "Ras Al-Ein",
           "name_ar": "\u0631\u0627\u0633 \u0627\u0644\u0639\u064a\u0646",
-          "residual_z": 0.5658,
+          "residual_z": 0.6559,
           "registered_licenses": 8900,
-          "observed_activity": 0.2251
+          "observed_activity": 0.2784
         },
         {
           "rank": 4,
           "district_name": "Marka",
           "name_ar": "\u0645\u0627\u0631\u0643\u0627",
-          "residual_z": 0.4353,
+          "residual_z": 0.4284,
           "registered_licenses": 14200,
-          "observed_activity": -0.1963
+          "observed_activity": -0.1874
         },
         {
           "rank": 5,
-          "district_name": "Zahran",
-          "name_ar": "\u0632\u0647\u0631\u0627\u0646",
-          "residual_z": 0.4067,
-          "registered_licenses": 18200,
-          "observed_activity": 0.7264
+          "district_name": "Badr Al-Jadida",
+          "name_ar": "\u0628\u062f\u0631 \u0627\u0644\u062c\u062f\u064a\u062f\u0629",
+          "residual_z": 0.3537,
+          "registered_licenses": 2100,
+          "observed_activity": -0.4928
         }
       ]
     },
