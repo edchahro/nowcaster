@@ -1,0 +1,13 @@
+# Hashemite Kingdom of Jordan - Department of Statistics (DoS)
+# Economic Census 2018 - Establishments & Employment by Administrative Liwa (Amman Governorate)
+# Source: Department of Statistics, Economic Census Report 2018, Table 1.2
+id,name_en,name_ar,centroid_lat,centroid_lng,census_2018_est,census_employment
+LIWA-01,Qasabat Amman (Central),لواء قصبة عمان,31.9550,35.9250,48210,194500
+LIWA-02,Al-Jami'ah (North),لواء الجامعة,32.0100,35.8650,28450,112000
+LIWA-03,Marka (Northeast),لواء ماركا,31.9800,35.9850,24820,98600
+LIWA-04,Al-Qweismeh (Southeast),لواء القويسمة,31.9050,35.9350,22140,89400
+LIWA-05,Wadi Al-Seer (West),لواء وادي السير,31.9550,35.8250,18910,76500
+LIWA-06,Sahab (Industrial),لواء سحاب,31.9100,36.0400,11340,58200
+LIWA-07,Al-Jizah (South),لواء الجيزة,31.8600,35.9100,3120,14200
+LIWA-08,Na'oor (Southwest),لواء ناعور,31.8850,35.8150,4210,16800
+LIWA-09,Al-Muwaggar (East Fringe),لواء الموقر,31.9300,36.1100,2430,9500

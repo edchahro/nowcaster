@@ -16,6 +16,7 @@ import os
 import re
 import sys
 from pathlib import Path
+from collections import Counter
 import numpy as np
 import pandas as pd
 import geopandas as gpd
@@ -167,25 +168,60 @@ def main():
         real_bank_points=("is_formal_bank", "sum"),
         real_total_pois=("is_poi", "sum")
     ).reset_index()
+
+    # -------------------------------------------------------------
+    # 2b. Process Real Street Network Intersections from PBF Lines
+    # -------------------------------------------------------------
+    print("[*] Extracting real street network intersections from OSM highway lines...")
+    lines_gdf = pyogrio.read_dataframe(PBF_PATH, layer="lines", bbox=AMMAN_BBOX)
+    highways = lines_gdf[lines_gdf["highway"].notnull()].copy()
+    print(f"[✓] Extracted {len(highways):,} OSM highway segments in Amman.")
+    
+    coords_count = Counter()
+    for geom in highways.geometry:
+        if geom.geom_type == 'LineString':
+            coords = geom.coords
+            if len(coords) >= 2:
+                p_start = (round(coords[0][0], 6), round(coords[0][1], 6))
+                p_end = (round(coords[-1][0], 6), round(coords[-1][1], 6))
+                coords_count[p_start] += 1
+                coords_count[p_end] += 1
+        elif geom.geom_type == 'MultiLineString':
+            for part in geom.geoms:
+                coords = part.coords
+                if len(coords) >= 2:
+                    p_start = (round(coords[0][0], 6), round(coords[0][1], 6))
+                    p_end = (round(coords[-1][0], 6), round(coords[-1][1], 6))
+                    coords_count[p_start] += 1
+                    coords_count[p_end] += 1
+                    
+    # Topological junctions connect >= 2 street segments
+    junction_pts = [Point(pt[0], pt[1]) for pt, count in coords_count.items() if count >= 2]
+    print(f"[✓] Identified {len(junction_pts):,} real physical street junctions.")
+    
+    junctions_gdf = gpd.GeoDataFrame(geometry=junction_pts, crs="EPSG:4326")
+    joined_junctions = gpd.sjoin(junctions_gdf, hex_gdf[["hex_id", "geometry"]], how="inner", predicate="within")
+    junction_summary = joined_junctions.groupby("hex_id").size().reset_index(name="real_junction_count")
     
     # -------------------------------------------------------------
     # 3. Merge All Real Data with Hexagons
     # -------------------------------------------------------------
-    print("[*] Merging building, POI, and population layers...")
+    print("[*] Merging building, POI, junction, and population layers...")
     merged_gdf = hex_gdf.merge(bldg_summary, on="hex_id", how="left").fillna(0)
     merged_gdf = merged_gdf.merge(poi_summary, on="hex_id", how="left").fillna(0)
+    merged_gdf = merged_gdf.merge(junction_summary, on="hex_id", how="left").fillna(0)
     
-    # Ingest real residential population from zonal stats
+    # Ingest real residential population from zonal stats (unfloored empirical data)
     if ZONAL_PATH.exists():
         zonal_df = gpd.read_file(ZONAL_PATH)
         merged_gdf["res_pop"] = zonal_df["res_pop"].values
         merged_gdf["viirs_mean_radiance"] = zonal_df["viirs_mean_radiance"].values
     else:
-        merged_gdf["res_pop"] = 3000
-        merged_gdf["viirs_mean_radiance"] = 15.0
+        merged_gdf["res_pop"] = 0
+        merged_gdf["viirs_mean_radiance"] = 0.0
         
-    # Real commercial footprint area: minimum 100 m2 floor for populated cells
-    merged_gdf["comm_area_m2"] = np.maximum(merged_gdf["real_comm_area_m2"], np.where(merged_gdf["res_pop"] > 50, 150.0, 50.0))
+    # Real unfloored commercial footprint area
+    merged_gdf["comm_area_m2"] = merged_gdf["real_comm_area_m2"]
     
     # Real small building share
     merged_gdf["small_building_share"] = np.where(
@@ -224,10 +260,8 @@ def main():
         (merged_gdf["real_cash_points"] + 2.0) / (merged_gdf["real_bank_points"] + merged_gdf["real_cash_points"] + 4.0)
     ).round(4)
     
-    # Intersection density proxy from buildings density
-    merged_gdf["intersection_density"] = np.clip(
-        (merged_gdf["total_bldg_count"] / 0.74) * 0.45 + 25.0, 15.0, 160.0
-    ).round(1)
+    # Real physical street intersection density (intersections per km2, cell area ~0.7373 km2)
+    merged_gdf["intersection_density"] = (merged_gdf["real_junction_count"] / 0.7373).round(2)
     
     # Anchor accessibility from downtown & major commercial centers
     c_lats = merged_gdf["centroid_lat"].values

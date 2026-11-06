@@ -89,18 +89,19 @@ def extract_zonal_radiance():
                     mean_val = float(np.mean(data[valid]))
                     max_val = float(np.max(data[valid]))
                 else:
-                    mean_val = 0.5
-                    max_val = 0.5
+                    mean_val = 0.0
+                    max_val = 0.0
                 mean_rads[i] = round(mean_val, 2)
                 max_rads[i] = round(max_val, 2)
             except Exception as e:
-                mean_rads[i] = 0.5
-                max_rads[i] = 0.5
+                mean_rads[i] = 0.0
+                max_rads[i] = 0.0
                 
     gdf["real_viirs_mean_radiance"] = mean_rads
     gdf["real_viirs_max_radiance"] = max_rads
     # In urban Amman, minimum background radiance baseline is ~1.0 nW/cm2/sr
-    gdf["viirs_mean_radiance"] = np.maximum(mean_rads, 1.0)
+    # Pure unfloored empirical zonal mean radiance (addressing audit finding 4)
+    gdf["viirs_mean_radiance"] = mean_rads
     
     print("\n--- Real VIIRS Zonal Radiance Summary (Amman H3 Hexagons) ---")
     print(f"Mean Hex Radiance:  {gdf['viirs_mean_radiance'].mean():.2f} nW/cm²/sr")

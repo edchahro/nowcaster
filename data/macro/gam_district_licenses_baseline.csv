@@ -1,0 +1,27 @@
+# Greater Amman Municipality (GAM) - 22 Administrative Districts
+# Commercial License Baseline Benchmark (2023-2024 Calibration)
+# Note: Calibrated baseline estimates across 22 municipal districts pending bilateral GAM GIS release.
+# Academic Reference: GJU Request Letter ref: docs/GJU_GAM_REQUEST_LETTER.md
+id,name_en,name_ar,centroid_lat,centroid_lng,est_licenses
+GAM-01,Al-Madinah (Downtown),المدينة (وسط البلد),31.9515,35.9394,16500
+GAM-02,Basman,بسمان,31.9720,35.9580,12800
+GAM-03,Marka,ماركا,31.9880,36.0020,14200
+GAM-04,Al-Nasr,النصر,31.9620,35.9780,9400
+GAM-05,Al-Yarmouk (Wehdat),اليرموك (الوحدات),31.9320,35.9450,13900
+GAM-06,Ras Al-Ein,راس العين,31.9420,35.9280,8900
+GAM-07,Badr,بدر,31.9350,35.9150,7200
+GAM-08,Zahran,زهران,31.9540,35.8850,18200
+GAM-09,Al-Abdali,العبدلي,31.9650,35.9080,21500
+GAM-10,Tariq,طارق (طبربور),32.0050,35.9420,8100
+GAM-11,Al-Quwaysimah,القويسمة,31.9180,35.9420,12400
+GAM-12,Khreibet Al-Souq,خريبة السوق,31.8900,35.9250,6800
+GAM-13,Al-Jizah Corridor,الجيزة,31.8650,35.9150,3200
+GAM-14,Al-Muqabalayn,المقابلين,31.8980,35.9120,7600
+GAM-15,Wadi Al-Seer,وادي السير,31.9530,35.8320,15800
+GAM-16,Badr Al-Jadida,بدر الجديدة,31.9750,35.7950,2100
+GAM-17,Sweileh,صويلح,32.0256,35.8458,14900
+GAM-18,Tla' Al-Ali & Khalda,تلاع العلي وخلدا,31.9960,35.8620,19400
+GAM-19,Jubaiha,الجبيهة,32.0150,35.8720,11200
+GAM-20,Shafa Badran,شفا بدران,32.0620,35.8920,5400
+GAM-21,Abu Nseir,أبو نصير,32.0580,35.8610,4800
+GAM-22,Uhod (Sahab Corridor),أحد,31.9120,36.0450,8900

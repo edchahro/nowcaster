@@ -65,7 +65,8 @@ def extract_zonal_population():
     
     # Floor minimum for urban fabric to avoid log(0) issues in inhabited parts
     # Replace zeros with a small baseline (e.g. 5) if hexagon has commercial buildings
-    gdf["res_pop"] = np.where(gdf["real_worldpop_2023"] > 0, np.round(gdf["real_worldpop_2023"]).astype(int), 5)
+    # Pure unfloored empirical residential population (addressing audit finding 5)
+    gdf["res_pop"] = np.round(gdf["real_worldpop_2023"]).astype(int)
     
     # Recompute Ambient Population with real population counts
     # Preserve commercial footprint and radiance from existing zonal file if present
